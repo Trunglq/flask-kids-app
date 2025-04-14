@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to AI for Kids</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: url("{{ url_for('static', filename='background.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #333;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(30, 136, 229, 0.2);
+            backdrop-filter: blur(5px);
+            z-index: -1;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 50px;
+            background-color: #1A263F;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        header h1 {
+            color: #FFFFFF;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        header a {
+            text-decoration: none;
+        }
+        header button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #1E88E5;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        header button:hover {
+            background-color: #1565C0;
+            transform: scale(1.05);
+        }
+        .hero {
+            text-align: center;
+            padding: 50px 20px;
+            background-color: #2E3A59;
+            margin: 20px 50px;
+            border-radius: 10px;
+        }
+        .hero h2 {
+            font-size: 48px;
+            color: #FFFFFF;
+            margin-bottom: 20px;
+        }
+        .hero p {
+            font-size: 18px;
+            color: #D1D5DB;
+            margin-bottom: 20px;
+        }
+        .hero .social-proof {
+            font-size: 16px;
+            color: #60A5FA;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .hero .video-placeholder {
+            width: 100%;
+            max-width: 600px;
+            height: 300px;
+            background-color: #E3F2FD;
+            margin: 20px auto;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #666;
+            position: relative;
+        }
+        .hero .video-placeholder a {
+            position: absolute;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #1E88E5;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .hero .video-placeholder a:hover {
+            background-color: #1565C0;
+        }
+        .hero button {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .hero button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+        .try-demo {
+            text-align: center;
+            padding: 50px 20px;
+            background-color: #FFF8E1;
+        }
+        .try-demo h3 {
+            font-size: 36px;
+            color: #1E88E5;
+            margin-bottom: 20px;
+        }
+        .try-demo form {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .try-demo input[type="text"] {
+            padding: 10px;
+            width: 300px;
+            font-size: 16px;
+            border: 2px solid #1E88E5;
+            border-radius: 5px;
+        }
+        .try-demo button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #1E88E5;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .try-demo button:hover {
+            background-color: #1565C0;
+            transform: scale(1.05);
+        }
+        .try-demo .hint-box {
+            background-color: #E3F2FD;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 0 auto;
+            max-width: 600px;
+            font-size: 16px;
+            color: #333;
+        }
+        .features {
+            padding: 50px 20px;
+            background-color: #FFF8E1;
+        }
+        .features h3 {
+            font-size: 36px;
+            color: #1E88E5;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .feature-grid {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .feature-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .feature-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .feature-card i {
+            font-size: 48px;
+            color: #1E88E5;
+            margin-bottom: 10px;
+        }
+        .feature-card h4 {
+            font-size: 24px;
+            color: #1E88E5;
+            margin-bottom: 10px;
+        }
+        .feature-card p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .feature-card button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            background-color: #1E88E5;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .feature-card button:hover {
+            background-color: #1565C0;
+            transform: scale(1.05);
+        }
+        .feature-card button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .testimonials {
+            padding: 50px 20px;
+            background-color: white;
+            text-align: center;
+        }
+        .testimonials h3 {
+            font-size: 36px;
+            color: #1E88E5;
+            margin-bottom: 20px;
+        }
+        .testimonial-slider {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        .testimonial-slides {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+        .testimonial-slide {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-shrink: 0;
+            width: 100%;
+        }
+        .testimonial {
+            background-color: #E3F2FD;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+        }
+        .testimonial img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            object-fit: cover;
+        }
+        .testimonial p {
+            font-size: 16px;
+            color: #333;
+            font-style: italic;
+        }
+        .testimonial span {
+            display: block;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .slider-controls {
+            margin-top: 20px;
+        }
+        .slider-controls button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #1E88E5;
+            color: white;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background-color 0.3s;
+        }
+        .slider-controls button:hover {
+            background-color: #1565C0;
+        }
+        .slider-controls button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .community-section {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 50px 20px;
+            flex-wrap: wrap;
+        }
+        .community-section .newsletter, .community-section .cta {
+            flex: 1;
+            min-width: 300px;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .community-section .newsletter {
+            background-color: #FFF8E1;
+        }
+        .community-section .cta {
+            background-color: #E3F2FD;
+        }
+        .community-section h3 {
+            font-size: 24px;
+            color: #1E88E5;
+            margin-bottom: 20px;
+        }
+        .community-section p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .community-section form {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .community-section input[type="email"] {
+            padding: 10px;
+            width: 250px;
+            font-size: 16px;
+            border: 2px solid #1E88E5;
+            border-radius: 5px;
+        }
+        .community-section button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #1E88E5;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .community-section button:hover {
+            background-color: #1565C0;
+            transform: scale(1.05);
+        }
+        .community-section button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        footer {
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>AI for Kids</h1>
+        <a href="{{ url_for('login') }}">
+            <button>Login</button>
+        </a>
+    </header>
+
+    <section class="hero">
+        <h2>Welcome to AI for Kids!</h2>
+        <p>Help your child learn math with AI-powered hints!</p>
+        <div class="social-proof">Trusted by 10,000+ parents worldwide</div>
+        <div class="video-placeholder">
+            <p>Watch Our Demo</p>
+            <a href="https://www.youtube.com/watch?v=P66vXGBtaLw&t=3220s" target="_blank">Play Video</a>
+        </div>
+        <form method="POST" action="{{ url_for('login') }}">
+            <button type="submit">Get Started</button>
+        </form>
+    </section>
+
+    <section class="try-demo">
+        <h3>Try It Now!</h3>
+        <form method="POST">
+            <input type="text" name="demo_question" placeholder="Enter a math problem, e.g., 27 + 10">
+            <button type="submit">Get Hint</button>
+        </form>
+        <div class="hint-box">{{ demo_hint }}</div>
+    </section>
+
+    <section class="features">
+        <h3>Explore AI for Kids</h3>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <i class="fas fa-robot"></i>
+                <h4>AI-Powered Learning</h4>
+                <p>Our AI provides step-by-step hints to help kids solve math problems independently.</p>
+                <form method="POST" action="{{ url_for('login') }}">
+                    <button type="submit">Try Now</button>
+                </form>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-gamepad"></i>
+                <h4>Game for Kids</h4>
+                <p>Reward your child with fun, simple games after learning sessions!</p>
+                <button disabled>Coming Soon</button>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-newspaper"></i>
+                <h4>Education News</h4>
+                <p>Stay updated with the latest tips and news on children’s education.</p>
+                <button disabled>Learn More</button>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-trophy"></i>
+                <h4>Earn Rewards & Badges</h4>
+                <p>Kids earn badges for solving math problems, making learning fun!</p>
+                <button disabled>Learn More</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <h3>What Parents Say</h3>
+        <div class="testimonial-slider">
+            <div class="testimonial-slides" id="testimonialSlides">
+                <div class="testimonial-slide">
+                    <div class="testimonial">
+                        <img src="https://via.placeholder.com/50" alt="Parent Avatar">
+                        <p>"This app made math fun for my child!"</p>
+                        <span>– Sarah, a happy parent</span>
+                    </div>
+                    <div class="testimonial">
+                        <img src="https://via.placeholder.com/50" alt="Parent Avatar">
+                        <p>"The hints are amazing! My kid loves it."</p>
+                        <span>– John, a satisfied dad</span>
+                    </div>
+                    <div class="testimonial">
+                        <img src="https://via.placeholder.com/50" alt="Parent Avatar">
+                        <p>"A great tool for learning math."</p>
+                        <span>– Emily, a mom of two</span>
+                    </div>
+                </div>
+                <div class="testimonial-slide">
+                    <div class="testimonial">
+                        <img src="https://via.placeholder.com/50" alt="Parent Avatar">
+                        <p>"My child’s confidence in math has improved!"</p>
+                        <span>– Michael, a proud parent</span>
+                    </div>
+                    <div class="testimonial">
+                        <img src="https://via.placeholder.com/50" alt="Parent Avatar">
+                        <p>"Highly recommend this app for kids."</p>
+                        <span>– Lisa, a teacher and parent</span>
+                    </div>
+                    <div class="testimonial" style="visibility: hidden;">
+                        <!-- Placeholder to maintain layout -->
+                    </div>
+                </div>
+            </div>
+            <div class="slider-controls">
+                <button onclick="moveSlide(-1)" id="prevBtn">Previous</button>
+                <button onclick="moveSlide(1)" id="nextBtn">Next</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="community-section">
+        <div class="newsletter">
+            <h3>Stay Updated with Education News</h3>
+            <p>Subscribe to our newsletter for the latest tips and updates on children’s education.</p>
+            <form>
+                <input type="email" placeholder="Enter your email" disabled>
+                <button disabled>Subscribe</button>
+            </form>
+        </div>
+        <div class="cta">
+            <h3>Join Thousands of Parents Using AI for Kids!</h3>
+            <form method="POST" action="{{ url_for('login') }}">
+                <button type="submit">Get Started</button>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2025 AI for Kids. All rights reserved.</p>
+    </footer>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.testimonial-slide');
+        const totalSlides = slides.length;
+
+        function updateSlider() {
+            document.getElementById('testimonialSlides').style.transform = `translateX(-${currentSlide * 100}%)`;
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function moveSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) currentSlide = 0;
+            if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+            updateSlider();
+        }
+
+        updateSlider();
+    </script>
+</body>
+</html>

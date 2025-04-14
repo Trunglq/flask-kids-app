@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI for Kids - Hỗ trợ cha mẹ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url("{{ url_for('static', filename='background.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 800px;
+            margin: 20px;
+        }
+        h1 {
+            font-size: 28px;
+            color: #1E88E5;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        h2 {
+            font-size: 22px;
+            color: #4CAF50;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #f0f0f0;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #1E88E5;
+            color: white;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background-color: #1565C0;
+        }
+        .tips-section {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chào mừng cha mẹ đến với AI for Kids! 👋</h1>
+        <p>Chúng tôi hiểu dạy con học toán có thể khó khăn, nên AI for Kids ở đây để giúp bạn! Sản phẩm của chúng tôi là trợ lý học toán dành cho học sinh lớp 4, giúp con bạn học toán một cách vui vẻ và hiệu quả.</p>
+        <p>AI for Kids được thiết kế dựa trên chương trình toán lớp 4 Việt Nam, sử dụng phương pháp giàn giáo (scaffolding) để từng bước hướng dẫn con suy nghĩ mà không làm thay. Điều này giúp con phát triển tư duy logic, tự tin giải bài toán, và yêu thích môn toán hơn!</p>
+
+        <h2>Cách sử dụng AI for Kids</h2>
+        <p>Con bạn chỉ cần nhập bài toán vào ô chat, và AI for Kids sẽ đưa ra gợi ý từng bước. Bạn cũng có thể nhấn vào "Mẹo cho cha mẹ" trên màn hình chính để xem cách hỗ trợ con hiệu quả hơn.</p>
+
+        <h2>Mẹo giúp con học toán</h2>
+        <div class="tips-section">
+            <ul>
+                <li><strong>Phân số:</strong> Hãy hỏi con: "Nếu con có 3 lát bánh và thêm 2 lát nữa, cả hai đều được cắt thành 7 phần bằng nhau, thì con có tất cả bao nhiêu lát?" Liên hệ với đồ vật thực tế sẽ giúp con hình dung dễ hơn!</li>
+                <li><strong>Tỉ số:</strong> Bạn có thể dùng đồ vật thật như kẹo hoặc bút chì để chia theo tỉ số cùng con, ví dụ: "Nếu có 3 phần cho An và 5 phần cho Bình, thì mỗi phần được bao nhiêu viên kẹo?" Điều này giúp con hiểu rõ hơn về tỉ số.</li>
+                <li><strong>Hình học:</strong> Khuyến khích con vẽ hình chữ nhật trên giấy và chia thành các ô vuông nhỏ, sau đó đếm số ô để tính diện tích. Hỏi con: "Nếu mỗi ô là 1 cm², thì cả hình có bao nhiêu ô?"</li>
+                <li><strong>Chuyển động:</strong> Cùng con tưởng tượng: "Nếu con đi xe đạp với tốc độ 10 km/giờ, thì trong 2 giờ con đi được bao xa?" Liên hệ với trải nghiệm thực tế sẽ giúp con hiểu bài toán chuyển động hơn!</li>
+                <li><strong>Chung:</strong> Khuyến khích con chia bài toán thành các bước nhỏ và hỏi: "Con nghĩ bước đầu tiên mình cần làm gì?" Điều này giúp con phát triển tư duy logic.</li>
+            </ul>
+        </div>
+
+        <form method="POST">
+            <button type="submit" class="btn">Quay lại</button>
+        </form>
+    </div>
+</body>
+</html>

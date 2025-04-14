@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chọn vai trò</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url("{{ url_for('static', filename='background.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        h2 {
+            font-size: 28px;
+            color: #1E88E5;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        select, button {
+            padding: 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        select {
+            border: 2px solid #1E88E5;
+            background-color: #fff;
+            color: #333;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .role-btn {
+            background-color: #FF9800;
+            margin-top: 10px;
+        }
+        .role-btn:hover {
+            background-color: #e68900;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Chào bạn! 👋</h2>
+        <p>Bạn là ai? Hãy chọn vai trò và lớp học nhé!</p>
+  <form method="POST" action="{{ url_for('role') }}">
+    <label for="role">Bạn là:</label>
+    <select name="role" id="role" required>
+        <option value="kids">Học sinh</option>
+        <option value="parent">Phụ huynh</option>
+    </select>
+    <label for="grade">Chọn lớp:</label>
+    <select name="grade" id="grade" required>
+        <option value="2">Lớp 2</option>
+        <option value="4">Lớp 4</option>
+        <option value="7">Lớp 7</option>
+    </select>
+    <button type="submit">Tiếp tục</button>
+</form>
+    </div>
+</body>
+</html>

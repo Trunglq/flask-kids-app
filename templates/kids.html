@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Helper for Kids</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url("{{ url_for('static', filename='background.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            color: #333;
+        }
+        .main-container {
+            display: flex;
+            gap: 20px;
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            flex: 1;
+        }
+        .chat-column {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            flex: 60%;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .popular-column, .recent-column {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            flex: 20%;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        h2 {
+            font-size: 24px;
+            color: #1E88E5;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        h3 {
+            font-size: 20px;
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+        p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .problem-statement {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1E88E5;
+            border-left: 4px solid #1E88E5;
+        }
+        .hint-text {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .content-section {
+            margin-top: 30px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .input-section {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto 20px auto;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .input-container {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            width: 100%;
+        }
+        textarea {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #1E88E5;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            resize: vertical;
+            min-height: 40px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: Arial, sans-serif;
+        }
+        .ask-btn, .upload-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .ask-btn:hover, .upload-btn:hover {
+            background-color: #45a049;
+        }
+        .upload-btn {
+            background-color: #FF9800;
+        }
+        .upload-btn:hover {
+            background-color: #e68900;
+        }
+        .file-input {
+            display: none;
+        }
+        .file-link {
+            color: #1E88E5;
+            text-decoration: none;
+            font-size: 16px;
+            margin: 10px 0;
+            display: inline-block;
+        }
+        .file-link:hover {
+            text-decoration: underline;
+        }
+        .attachment-area {
+            margin-top: 20px;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+        }
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .full-width-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .explain-more-btn {
+            background-color: #FF9800;
+        }
+        .explain-more-btn:hover {
+            background-color: #e68900;
+        }
+        .got-it-btn {
+            background-color: #1E88E5;
+        }
+        .got-it-btn:hover {
+            background-color: #1565C0;
+        }
+        .tip-link, .usage-link {
+            display: block;
+            margin-top: 15px;
+            color: #9C27B0;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .tip-link:hover, .usage-link:hover {
+            text-decoration: underline;
+        }
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .loading-bar {
+            width: 100%;
+            max-width: 300px;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .loading-bar::before {
+            content: '😊';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 30px;
+            background-color: #FFEB3B;
+            border-radius: 10px;
+            animation: move 2s infinite linear;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        @keyframes move {
+            0% { left: -30px; }
+            100% { left: 100%; }
+        }
+        .loading-text {
+            font-style: italic;
+            color: #FF5722;
+            font-size: 16px;
+        }
+        .problem-list, .recent-problems {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .problem-item, .recent-item {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 16px;
+            text-align: left;
+        }
+        .problem-item:hover, .recent-item:hover {
+            background-color: #e0e0e0;
+        }
+        .problem-list-container {
+            font-style: italic;
+            color: #666;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        .modal-content h4 {
+            margin: 0 0 15px;
+            font-size: 20px;
+            color: #4CAF50;
+        }
+        .modal-content p {
+            font-size: 16px;
+            margin: 0 0 20px;
+        }
+        .close-btn {
+            background-color: #FF5722;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .close-btn:hover {
+            background-color: #e64a19;
+        }
+        .geometry-image {
+            max-width: 100%;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Cột chính (chat box, 60%) -->
+        <div class="chat-column">
+            <h2>Chào bạn! 👋</h2>
+            <div class="content-section">
+                {% if current_question %}
+                    <div class="problem-statement">
+                        Đề bài: {{ current_question | safe }}
+                    </div>
+                {% endif %}
+                {% if image_path %}
+                    <img src="{{ url_for('static', filename=image_path.split('static/')[1]) }}" alt="Hình minh họa" class="geometry-image">
+                {% endif %}
+                {% if loading %}
+                    <div class="loading-container">
+                        <div class="loading-bar"></div>
+                        <p class="loading-text">{{ loading_message }}</p>
+                    </div>
+                {% else %}
+                    {% if hint.startswith('Tớ không') or hint.startswith('Hãy chọn') or hint.startswith('Bạn chưa') or hint.startswith('Có lỗi') or hint.startswith('Bạn giỏi') or hint.startswith('Lịch sử') or hint.startswith('Ảnh đã') or hint.startswith('File không') or hint.startswith('Nhập bài toán') %}
+                        <p class="hint-text">{{ hint }}</p>
+                    {% else %}
+                        <p class="hint-text">Gợi ý {{ current_step + 1 }}: {{ hint }}</p>
+                    {% endif %}
+                {% endif %}
+                <!-- Khu vực danh sách bài toán -->
+                {% if extracted_problems %}
+                    <div class="problem-list-container">
+                        {{ extracted_problems }}
+                    </div>
+                {% endif %}
+            </div>
+            {% if hint != "Nhập bài toán hoặc tải ảnh để nhận gợi ý!" and not loading %}
+                <form method="POST" id="action-form">
+                    <div class="button-container">
+                        <button type="submit" name="action" value="explain_more" class="full-width-btn explain-more-btn">
+                            <span>📖</span> Giải thích thêm
+                        </button>
+                        <button type="submit" name="action" value="got_it" class="full-width-btn got-it-btn">
+                            <span>😊</span> Tớ hiểu rồi!
+                        </button>
+                    </div>
+                    <a class="tip-link" onclick="showParentTip()">Mẹo cho cha mẹ</a>
+                    <a href="/api_usage" class="usage-link">Xem chi phí token</a>
+                </form>
+            {% endif %}
+            <!-- Khu vực file đính kèm -->
+            {% if attached_file %}
+                <div class="attachment-area">
+                    <a href="{{ url_for('static', filename=attached_file.split('static/')[1]) }}" target="_blank" class="file-link">
+                        Xem file đính kèm: {{ attached_file.split('/')[-1] }}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Cột danh sách bài toán phổ biến (20%) -->
+        <div class="popular-column">
+            <h3>Những bài toán phổ biến lớp {{ session.get('grade', '4') }} 📚</h3>
+            <div class="problem-list">
+                {% if session.get('grade', '4') == '4' %}
+                    <div class="problem-item" onclick="selectProblem('Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.')">
+                        Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Cộng hai phân số 3/7 và 2/7.')">
+                        Cộng hai phân số 3/7 và 2/7.
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?')">
+                        Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?')">
+                        Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?')">
+                        Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?
+                    </div>
+                {% elif session.get('grade', '4') == '7' %}
+                    <!-- Bài toán lớp 7 -->
+                    <div class="problem-item" onclick="selectProblem('Tính giá trị biểu thức: 3/4 + 5/6 - 1/3.')">
+                        Tính giá trị biểu thức: 3/4 + 5/6 - 1/3.
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Tìm x trong tỉ lệ thức: 2/3 = x/9.')">
+                        Tìm x trong tỉ lệ thức: 2/3 = x/9.
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Rút gọn: (2x^2 - 3x + 5) + (x^2 + 4x - 1).')">
+                        Rút gọn: (2x^2 - 3x + 5) + (x^2 + 4x - 1).
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Cho tam giác ABC có góc A = 50°, góc B = 60°. Tính góc C.')">
+                        Cho tam giác ABC có góc A = 50°, góc B = 60°. Tính góc C.
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.')">
+                        Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.
+                    </div>
+                {% elif session.get('grade', '4') == '2' %}
+                    <!-- Bài toán lớp 2 -->
+                    <div class="problem-item" onclick="selectProblem('Thực hiện phép tính: 52 + 18 - 33')">
+                        Thực hiện phép tính: 52 + 18 - 33
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Điền số thích hợp vào chỗ chấm: 9 + … - … = 15')">
+                        Điền số thích hợp vào chỗ chấm: 9 + … - … = 15
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Tìm x biết: x - 29 = 12')">
+                        Tìm x biết: x - 29 = 12
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15')">
+                        Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Đặt tính rồi tính: 72 - 29')">
+                        Đặt tính rồi tính: 72 - 29
+                    </div>                
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Cột bài toán gần đây (20%) -->
+        <div class="recent-column">
+            <h3>Bài toán gần đây ⏳</h3>
+            {% if recent_questions %}
+                <div class="recent-problems">
+                    {% for question in recent_questions %}
+                        <div class="recent-item" onclick="selectProblem('{{ question | e }}')">
+                            {{ question }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Chưa có bài toán nào được hỏi gần đây.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Ô input box ở dưới cùng -->
+    <div class="input-section">
+        <form method="POST" id="main-form" enctype="multipart/form-data">
+            <div class="input-container">
+                <textarea name="question" id="question-input" placeholder="Nhập câu hỏi (ví dụ: Câu 4)"></textarea>
+                <button type="submit" name="action" value="ask" class="ask-btn">
+                    <span>❓</span> Hỏi
+                </button>
+                <label class="upload-btn">
+                    <span>📎</span> Đính kèm ảnh
+                    <input type="file" name="file" id="file-input" class="file-input" accept="image/png,image/jpeg,image/jpg">
+                </label>
+            </div>
+        </form>
+    </div>
+
+    <!-- Modal pop-up cho mẹo -->
+    <div id="parentTipModal" class="modal">
+        <div class="modal-content">
+            <h4>Mẹo cho cha mẹ</h4>
+            <p id="parentTipText">Đang tải mẹo...</p>
+            <button class="close-btn" onclick="closeParentTip()">Đóng</button>
+        </div>
+    </div>
+
+    <script>
+        function selectProblem(problem) {
+            try {
+                console.log("Selecting problem:", problem);
+                const input = document.getElementById('question-input');
+                input.value = problem;
+                const form = document.getElementById('main-form');
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'action';
+                hiddenInput.value = 'ask';
+                form.appendChild(hiddenInput);
+                // Thêm trường để báo cho server biết cần xóa file đính kèm
+                const clearFileInput = document.createElement('input');
+                clearFileInput.type = 'hidden';
+                clearFileInput.name = 'clear_file';
+                clearFileInput.value = 'true';
+                form.appendChild(clearFileInput);
+                form.submit();
+            } catch (error) {
+                console.error('Error selecting problem:', error);
+                alert('Có lỗi xảy ra khi chọn bài toán. Bạn thử lại nhé!');
+            }
+        }
+
+        function fetchHints() {
+            console.log("Fetching hints...");
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+            fetch('/kids', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=fetch_hints',
+                signal: controller.signal
+            })
+            .then(response => response.text())
+            .then(html => {
+                clearTimeout(timeoutId);
+                console.log("Hints fetched successfully.");
+                document.open();
+                document.write(html);
+                document.close();
+            })
+            .catch(error => {
+                clearTimeout(timeoutId);
+                console.error('Error fetching hints:', error);
+                document.querySelector('.content-section').innerHTML = `
+                    <p class="hint-text">Có lỗi xảy ra khi lấy gợi ý. Bạn thử lại nhé!</p>
+                `;
+            });
+        }
+
+        function completeAttach() {
+            console.log("Completing attach...");
+            fetch('/kids', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=attach_complete'
+            })
+            .then(response => response.text())
+            .then(html => {
+                console.log("Attach completed successfully.");
+                document.open();
+                document.write(html);
+                document.close();
+            })
+            .catch(error => {
+                console.error('Error completing attach:', error);
+                document.querySelector('.content-section').innerHTML = `
+                    <p class="hint-text">Có lỗi xảy ra khi tải ảnh. Bạn thử lại nhé!</p>
+                `;
+            });
+        }
+
+        function showParentTip() {
+            console.log("Showing parent tip...");
+            const modal = document.getElementById('parentTipModal');
+            const tipText = document.getElementById('parentTipText');
+            tipText.textContent = 'Đang tải mẹo...';
+            modal.style.display = 'flex';
+
+            fetch('/get_parent_tip', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                tipText.textContent = data.tip;
+                console.log("Parent tip loaded:", data.tip);
+            })
+            .catch(error => {
+                console.error('Error fetching parent tip:', error);
+                tipText.textContent = 'Có lỗi xảy ra khi lấy mẹo. Bạn thử lại nhé!';
+            });
+        }
+
+        function closeParentTip() {
+            console.log("Closing parent tip modal...");
+            const modal = document.getElementById('parentTipModal');
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('parentTipModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM fully loaded.");
+
+            {% if not loading and hint != "Nhập bài toán hoặc tải ảnh để nhận gợi ý!" %}
+                console.log("Clearing input field...");
+                const input = document.getElementById('question-input');
+                input.value = '';
+                input.placeholder = 'Nhập câu hỏi...';
+            {% endif %}
+
+            {% if loading %}
+                {% if loading_message == "Đang tải và trích xuất nội dung file..." %}
+                    console.log("Detected file upload, calling completeAttach...");
+                    setTimeout(completeAttach, 2000);
+                {% else %}
+                    console.log("Detected loading state, fetching hints...");
+                    fetchHints();
+                {% endif %}
+            {% endif %}
+
+            console.log("Scrolling chat column to bottom...");
+            const chatColumn = document.querySelector('.chat-column');
+            chatColumn.scrollTop = chatColumn.scrollHeight;
+
+            const fileInput = document.getElementById('file-input');
+            fileInput.addEventListener('change', function() {
+                if (fileInput.files.length > 0) {
+                    console.log("File selected, submitting form with action=attach_file...");
+                    const form = document.getElementById('main-form');
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'action';
+                    hiddenInput.value = 'attach_file';
+                    form.appendChild(hiddenInput);
+                    form.submit();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

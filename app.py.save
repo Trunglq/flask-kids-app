@@ -1,0 +1,398 @@
+from flask import Flask, render_template, request, jsonify
+
+app = Flask(__name__)
+
+# Dữ liệu tĩnh: Các câu hỏi với 5 bước gợi mở và mẹo phụ huynh
+hints_data = {
+    "27 + 10": {
+        "steps": [
+            "Try breaking 27 into 20 and 7, then add 10.",
+            "What’s 20 + 10?",
+            "If you have 20 candies and add 10, how many now?",
+            "Add 10 to 20 to get 30, then add 7.",
+            "Does 27 + 10 = 37? Try it!"
+        ],
+        "tip": "Ask your child: How does the tens place change when adding 10?"
+    },
+    "15 + 8": {
+        "steps": [
+            "Can you split 8 into 5 and 3, then add to 15?",
+            "What’s 15 + 5?",
+            "If you have 15 candies, add 5, then 3 more, how many?",
+            "Add 5 to 15 to get 20, then add 3.",
+            "Does 15 + 8 = 23? Try it!"
+        ],
+        "tip": "Ask your child: Adding 8 is like adding 5 then 3, does that help?"
+    },
+    "42 - 7": {
+        "steps": [
+            "Try splitting 7 into 2 and 5, then subtract from 42.",
+            "What’s 42 - 2?",
+            "If you have 42 balloons, remove 2, then 5 more, how many left?",
+            "Subtract 2 from 42 to get 40, then subtract 5.",
+            "Does 42 - 7 = 35? Try it!"
+        ],
+        "tip": "Ask your child: Subtracting 7 is like removing 2 then 5, how does that work?"
+    },
+    "20 + 24": {
+        "steps": [
+            "Try breaking 24 into 20 and 4, then add to 20.",
+            "What’s 20 + 20?",
+            "If you have 20 candies, add 20 more, then 4 more, how many?",
+            "Add 20 to 20 to get 40, then add 4.",
+            "Does 20 + 24 = 44? Try it!"
+        ],
+        "tip": "Ask your child: How does breaking 24 into 20 and 4 make adding easier?"
+    },
+    "30 - 12": {
+        "steps": [
+            "Try splitting 12 into 10 and 2, then subtract from 30.",
+            "What’s 30 - 10?",
+            "If you have 30 balloons, remove 10, then 2 more, how many left?",
+            "Subtract 10 from 30 to get 20, then subtract 2.",
+            "Does 30 - 12 = 18? Try it!"
+        ],
+        "tip": "Ask your child: Subtracting 12 is like removing 10 then 2, does that help?"
+    }
+}
+
+# Hàm sinh gợi ý động cho phép cộng
+def generate_addition_hints(num1, num2):
+    steps = [
+        f"Try breaking {num2} into {num2//10*10} and {num2%10}, then add to {num1}.",
+        f"What’s {num1} + {num2//10*10}?",
+        f"If you have {num1} candies, add {num2//10*10} more, then {num2%10} more, how many?",
+        f"Add {num2//10*10} to {num1} to get {num1 + num2//10*10}, then add {num2%10}.",
+        f"Does {num1} + {num2} = {num1 + num2}? Try it!"
+    ]
+    tip = f"Ask your child: How does breaking {num2} into {num2//10*10} and {num2%10} make adding easier?"
+    return steps, tip
+
+# Hàm sinh gợi ý động cho phép trừ
+def generate_subtraction_hints(num1, num2):
+    steps = [
+        f"Try splitting {num2} into {num2//10*10} and {num2%10}, then subtract from {num1}.",
+        f"What’s {num1} - {num2//10*10}?",
+        f"If you have {num1} balloons, remove {num2//10*10}, then {num2%10} more, how many left?",
+        f"Subtract {num2//10*10} from {num1} to get {num1 - num2//10*10}, then subtract {num2%10}.",
+        f"Does {num1} - {num2} = {num1 - num2}? Try it!"
+    ]
+    tip = f"Ask your child: Subtracting {num2} is like removing {num2//10*10} then {num2%10}, does that help?"
+    return steps, tip
+
+# Biến lưu trạng thái bước hiện tại
+current_step = 0
+current_question = ""
+dynamic_hints = None
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    global current_step, current_question, dynamic_hints
+    hint = "Enter a math problem to get a hint!"
+    tip = ""
+
+    if request.method == "POST":
+        action = request.form.get("action")
+        question = request.form.get("question", "").strip()
+
+        if action == "ask":
+            current_question = question
+            current_step = 0
+            dynamic_hints = None  # Reset dynamic hints
+
+            # Kiểm tra nếu câu hỏi có trong dữ liệu tĩnh
+            if question in hints_data:
+                hint = hints_data[question]["steps"][0]
+            else:
+                # Thử phân tích câu hỏi (dạng "số + số" hoặc "số - số")
+                try:
+                    parts = question.replace(" ", "").replace("=", "").split("+")
+                    if len(parts) == 2:
+                        num1, num2 = int(parts[0]), int(parts[1])
+                        dynamic_hints, tip = generate_addition_hints(num1, num2)
+                        hint = dynamic_hints[0]
+                    else:
+                        parts = question.replace(" ", "").replace("=", "").split("-")
+                        if len(parts) == 2:
+                            num1, num2 = int(parts[0]), int(parts[1])
+                            dynamic_hints, tip = generate_subtraction_hints(num1, num2)
+                            hint = dynamic_hints[0]
+                        else:
+                            hint = "Sorry, I can only help with addition (+) or subtraction (-) problems."
+                except ValueError:
+                    hint = "Please enter a valid math problem (e.g., 20 + 24 or 30 - 12)."
+
+        elif action == "not_yet":
+            if current_question in hints_data:
+                if current_step < 4:
+                    current_step += 1
+                    hint = hints_data[current_question]["steps"][current_step]
+                else:
+                    hint = "That’s the last hint! Try solving it now."
+            elif dynamic_hints:
+                if current_step < 4:
+                    current_step += 1
+                    hint = dynamic_hints[current_step]
+                else:
+                    hint = "That’s the last hint! Try solving it now."
+            else:
+                hint = "Sorry, I don’t have a hint for this problem yet."
+
+        elif action == "got_it":
+            hint = "Great job!"
+            current_step = 0
+            dynamic_hints = None
+
+        elif action == "tips":
+            if current_question in hints_data:
+                tip = hints_data[current_question]["tip"]
+            elif dynamic_hints:
+                # Tip đã được sinh trong generate_addition_hints hoặc generate_subtraction_hints
+                pass
+            else:
+                tip = "No tip available for this problem."
+
+    return render_template("index.html", hint=hint, tip=tip)
+
+if __name__ == "__main__":
+    app.run(debug=True)from flask import Flask, render_template, request, jsonify
+
+app = Flask(__name__)
+
+# Dữ liệu tĩnh: Các câu hỏi với 5 bước gợi mở và mẹo phụ huynh
+hints_data = {
+    "27 + 10": {
+        "steps": [
+            "Try breaking 27 into 20 and 7, then add 10.",
+            "What’s 20 + 10?",
+            "If you have 20 candies and add 10, how many now?",
+            "Add 10 to 20 to get 30, then add 7.",
+            "Does 27 + 10 = 37? Try it!"
+        ],
+        "tip": "Ask your child: How does the tens place change when adding 10?"
+    },
+    "15 + 8": {
+        "steps": [
+            "Can you split 8 into 5 and 3, then add to 15?",
+            "What’s 15 + 5?",
+            "If you have 15 candies, add 5, then 3 more, how many?",
+            "Add 5 to 15 to get 20, then add 3.",
+            "Does 15 + 8 = 23? Try it!"
+        ],
+        "tip": "Ask your child: Adding 8 is like adding 5 then 3, does that help?"
+    },
+    "42 - 7": {
+        "steps": [
+            "Try splitting 7 into 2 and 5, then subtract from 42.",
+            "What’s 42 - 2?",
+            "If you have 42 balloons, remove 2, then 5 more, how many left?",
+            "Subtract 2 from 42 to get 40, then subtract 5.",
+            "Does 42 - 7 = 35? Try it!"
+        ],
+        "tip": "Ask your child: Subtracting 7 is like removing 2 then 5, how does that work?"
+    },
+    "20 + 24": {
+        "steps": [
+            "Try breaking 24 into 20 and 4, then add to 20.",
+            "What’s 20 + 20?",
+            "If you have 20 candies, add 20 more, then 4 more, how many?",
+            "Add 20 to 20 to get 40, then add 4.",
+            "Does 20 + 24 = 44? Try it!"
+        ],
+        "tip": "Ask your child: How does breaking 24 into 20 and 4 make adding easier?"
+    },
+    "30 - 12": {
+        "steps": [
+            "Try splitting 12 into 10 and 2, then subtract from 30.",
+            "What’s 30 - 10?",
+            "If you have 30 balloons, remove 10, then 2 more, how many left?",
+            "Subtract 10 from 30 to get 20, then subtract 2.",
+            "Does 30 - 12 = 18? Try it!"
+        ],
+        "tip": "Ask your child: Subtracting 12 is like removing 10 then 2, does that help?"
+    }
+}
+
+# Hàm sinh gợi ý động cho phép cộng
+def generate_addition_hints(num1, num2):
+    steps = [
+        f"Try breaking {num2} into {num2//10*10} and {num2%10}, then add to {num1}.",
+        f"What’s {num1} + {num2//10*10}?",
+        f"If you have {num1} candies, add {num2//10*10} more, then {num2%10} more, how many?",
+        f"Add {num2//10*10} to {num1} to get {num1 + num2//10*10}, then add {num2%10}.",
+        f"Does {num1} + {num2} = {num1 + num2}? Try it!"
+    ]
+    tip = f"Ask your child: How does breaking {num2} into {num2//10*10} and {num2%10} make adding easier?"
+    return steps, tip
+
+# Hàm sinh gợi ý động cho phép trừ
+def generate_subtraction_hints(num1, num2):
+    steps = [
+        f"Try splitting {num2} into {num2//10*10} and {num2%10}, then subtract from {num1}.",
+        f"What’s {num1} - {num2//10*10}?",
+        f"If you have {num1} balloons, remove {num2//10*10}, then {num2%10} more, how many left?",
+        f"Subtract {num2//10*10} from {num1} to get {num1 - num2//10*10}, then subtract {num2%10}.",
+        f"Does {num1} - {num2} = {num1 - num2}? Try it!"
+    ]
+    tip = f"Ask your child: Subtracting {num2} is like removing {num2//10*10} then {num2%10}, does that help?"
+    return steps, tip
+
+# Biến lưu trạng thái bước hiện tại
+current_step = 0
+current_question = ""
+dynamic_hints = None
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    global current_step, current_question, dynamic_hints
+    hint = "Enter a math problem to get a hint!"
+    tip = ""
+
+    if request.method == "POST":
+        action = request.form.get("action")
+        question = request.form.get("question", "").strip()
+
+        if action == "ask":
+            current_question = question
+            current_step = 0
+            dynamic_hints = None  # Reset dynamic hints
+
+            # Kiểm tra nếu câu hỏi có trong dữ liệu tĩnh
+            if question in hints_data:
+                hint = hints_data[question]["steps"][0]
+            else:
+                # Thử phân tích câu hỏi (dạng "số + số" hoặc "số - số")
+                try:
+                    parts = question.replace(" ", "").replace("=", "").split("+")
+                    if len(parts) == 2:
+                        num1, num2 = int(parts[0]), int(parts[1])
+                        dynamic_hints, tip = generate_addition_hints(num1, num2)
+                        hint = dynamic_hints[0]
+                    else:
+                        parts = question.replace(" ", "").replace("=", "").split("-")
+                        if len(parts) == 2:
+                            num1, num2 = int(parts[0]), int(parts[1])
+                            dynamic_hints, tip = generate_subtraction_hints(num1, num2)
+                            hint = dynamic_hints[0]
+                        else:
+                            hint = "Sorry, I can only help with addition (+) or subtraction (-) problems."
+                except ValueError:
+                    hint = "Please enter a valid math problem (e.g., 20 + 24 or 30 - 12)."
+
+        elif action == "not_yet":
+            if current_question in hints_data:
+                if current_step < 4:
+                    current_step += 1
+                    hint = hints_data[current_question]["steps"][current_step]
+                else:
+                    hint = "That’s the last hint! Try solving it now."
+            elif dynamic_hints:
+                if current_step < 4:
+                    current_step += 1
+                    hint = dynamic_hints[current_step]
+                else:
+                    hint = "That’s the last hint! Try solving it now."
+            else:
+                hint = "Sorry, I don’t have a hint for this problem yet."
+
+        elif action == "got_it":
+            hint = "Great job!"
+            current_step = 0
+            dynamic_hints = None
+
+        elif action == "tips":
+            if current_question in hints_data:
+                tip = hints_data[current_question]["tip"]
+            elif dynamic_hints:
+                # Tip đã được sinh trong generate_addition_hints hoặc generate_subtraction_hints
+                pass
+            else:
+                tip = "No tip available for this problem."
+
+    return render_template("index.html", hint=hint, tip=tip)
+
+if __name__ == "__main__":
+    app.run(debug=True)from flask import Flask, render_template, request, jsonify
+
+app = Flask(__name__)
+
+# Dữ liệu tĩnh: 3 câu hỏi với 5 bước gợi mở và mẹo phụ huynh
+hints_data = {
+    "27 + 10": {
+        "steps": [
+            "Try breaking 27 into 20 and 7, then add 10.",
+            "What’s 20 + 10?",
+            "If you have 20 candies and add 10, how many now?",
+            "Add 10 to 20 to get 30, then add 7.",
+            "Does 27 + 10 = 37? Try it!"
+        ],
+        "tip": "Ask your child: How does the tens place change when adding 10?"
+    },
+    "15 + 8": {
+        "steps": [
+            "Can you split 8 into 5 and 3, then add to 15?",
+            "What’s 15 + 5?",
+            "If you have 15 candies, add 5, then 3 more, how many?",
+            "Add 5 to 15 to get 20, then add 3.",
+            "Does 15 + 8 = 23? Try it!"
+        ],
+        "tip": "Ask your child: Adding 8 is like adding 5 then 3, does that help?"
+    },
+    "42 - 7": {
+        "steps": [
+            "Try splitting 7 into 2 and 5, then subtract from 42.",
+            "What’s 42 - 2?",
+            "If you have 42 balloons, remove 2, then 5 more, how many left?",
+            "Subtract 2 from 42 to get 40, then subtract 5.",
+            "Does 42 - 7 = 35? Try it!"
+        ],
+        "tip": "Ask your child: Subtracting 7 is like removing 2 then 5, how does that work?"
+    }
+}
+
+# Biến lưu trạng thái bước hiện tại
+current_step = 0
+current_question = ""
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    global current_step, current_question
+    hint = "Enter a math problem to get a hint!"
+    tip = ""
+
+    if request.method == "POST":
+        action = request.form.get("action")
+        question = request.form.get("question", "").strip()
+
+        if action == "ask":
+            current_question = question
+            current_step = 0
+            if question in hints_data:
+                hint = hints_data[question]["steps"][0]
+            else:
+                hint = "Sorry, I don’t have a hint for this problem yet."
+
+        elif action == "not_yet":
+            if current_question in hints_data:
+                if current_step < 4:
+                    current_step += 1
+                    hint = hints_data[current_question]["steps"][current_step]
+                else:
+                    hint = "That’s the last hint! Try solving it now."
+            else:
+                hint = "Sorry, I don’t have a hint for this problem yet."
+
+        elif action == "got_it":
+            hint = "Great job!"
+            current_step = 0
+
+        elif action == "tips":
+            if current_question in hints_data:
+                tip = hints_data[current_question]["tip"]
+            else:
+                tip = "No tip available for this problem."
+
+    return render_template("index.html", hint=hint, tip=tip)
+
+if __name__ == "__main__":
+    app.run(debug=True)
