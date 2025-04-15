@@ -1,0 +1,26 @@
+File credentials Google Cloud
+*.json
+
+Thư mục môi trường ảo
+myenv/
+venv/
+
+File Python tạm
+pycache/
+*.pyc
+*.pyo
+*.pyd
+
+File log
+*.log
+
+Thư mục upload tạm
+/tmp/*
+static/uploads/
+
+File hệ thống macOS
+.DS_Store
+
+File IDE
+.vscode/
+.idea/
