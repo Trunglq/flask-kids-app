@@ -15,6 +15,8 @@ import base64
 import logging
 import pytesseract
 from PIL import Image
+from google.cloud import vision
+import json
 
 # Cấu hình logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -37,6 +39,30 @@ requests_in_hour = []
 HOURLY_LIMIT = 60
 SECOND_LIMIT = 1
 
+# Cấu hình Google Cloud Vision
+vision_client = None
+
+def setup_vision_client():
+    global vision_client
+    try:
+        # Tạo credentials từ biến môi trường
+        if os.environ.get('GOOGLE_APPLICATION_CREDENTIALS_JSON'):
+            credentials_json = json.loads(os.environ.get('GOOGLE_APPLICATION_CREDENTIALS_JSON'))
+            from google.oauth2 import service_account
+            credentials = service_account.Credentials.from_service_account_info(credentials_json)
+            vision_client = vision.ImageAnnotatorClient(credentials=credentials)
+        else:
+            # Fallback to default credentials (not recommended for production)
+            vision_client = vision.ImageAnnotatorClient()
+        logging.info("Google Vision client initialized successfully")
+        return True
+    except Exception as e:
+        logging.error(f"Error initializing Google Vision client: {str(e)}")
+        return False
+
+# Call setup at app initialization
+setup_vision_client()
+
 def check_rate_limit():
     global last_request_time, requests_in_hour
     current_time = time()
@@ -52,12 +78,31 @@ def check_rate_limit():
 
 def extract_text_from_image(file_path):
     try:
-        img = Image.open(file_path)
-        text = pytesseract.image_to_string(img, lang='vie')
-        logging.info(f"Text extracted from image: {text}")
-        return text.strip()
+        global vision_client
+        if not vision_client:
+            if not setup_vision_client():
+                return None
+                
+        # Đọc file
+        with open(file_path, 'rb') as image_file:
+            content = image_file.read()
+        
+        image = vision.Image(content=content)
+        # Detect text
+        response = vision_client.text_detection(image=image)
+        texts = response.text_annotations
+        
+        if texts:
+            # Lấy toàn bộ văn bản (text_annotations[0] chứa toàn bộ văn bản)
+            extracted_text = texts[0].description
+            logging.info(f"Text extracted from image using Google Vision: {extracted_text}")
+            return extracted_text.strip()
+        else:
+            logging.warning("No text detected in the image")
+            return None
+            
     except Exception as e:
-        logging.error(f"Error extracting text from image: {str(e)}")
+        logging.error(f"Error extracting text from image with Google Vision: {str(e)}")
         return None
 
 def extract_specific_problem(extracted_text, problem):
@@ -350,7 +395,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
         file_type = "image/png" if file_path.lower().endswith(('.png', '.jpg', '.jpeg')) else "application/pdf"
         logging.info(f"File type detected: {file_type}")
 
-        # Trích xuất văn bản từ ảnh bằng Tesseract
+        # Trích xuất văn bản từ ảnh bằng Google Vision
         extracted_text = extract_text_from_image(file_path)
         if not extracted_text:
             logging.warning("No text extracted from image. Falling back to API with file.")
@@ -395,7 +440,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
                 "max_tokens": 500
             }
         else:
-            # Nếu Tesseract trích xuất được văn bản
+            # Nếu Google Vision trích xuất được văn bản
             if problem:
                 # Tách bài toán cụ thể từ extracted_text
                 specific_problem = extract_specific_problem(extracted_text, problem)
