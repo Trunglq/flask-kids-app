@@ -13,11 +13,14 @@ import numpy as np
 import re
 import base64
 import logging
-import pytesseract
 from PIL import Image
+from google.cloud import vision
 
 # Cấu hình logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Đặt đường dẫn đến file JSON chứa thông tin xác thực
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/hemera/Documents/GitHub/flask-kids-app/ai-for-kids-456901-721c140182d3.json"
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -52,10 +55,22 @@ def check_rate_limit():
 
 def extract_text_from_image(file_path):
     try:
-        img = Image.open(file_path)
-        text = pytesseract.image_to_string(img, lang='vie')
-        logging.info(f"Text extracted from image: {text}")
-        return text.strip()
+        client = vision.ImageAnnotatorClient()
+        with open(file_path, 'rb') as image_file:
+            content = image_file.read()
+        image = vision.Image(content=content)
+
+        response = client.text_detection(image=image)
+        texts = response.text_annotations
+
+        if texts:
+            text = texts[0].description
+            logging.info(f"Text extracted from image: {text}")
+            return text.strip()
+        else:
+            logging.warning("No text found in image.")
+            return None
+
     except Exception as e:
         logging.error(f"Error extracting text from image: {str(e)}")
         return None
@@ -350,14 +365,14 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
         file_type = "image/png" if file_path.lower().endswith(('.png', '.jpg', '.jpeg')) else "application/pdf"
         logging.info(f"File type detected: {file_type}")
 
-        # Trích xuất văn bản từ ảnh bằng Tesseract
+        # Trích xuất văn bản từ ảnh bằng Google Cloud Vision
         extracted_text = extract_text_from_image(file_path)
         if not extracted_text:
             logging.warning("No text extracted from image. Falling back to API with file.")
             user_prompt = """
             Người dùng đã tải lên một hình ảnh hoặc file PDF chứa các bài toán. Nhiệm vụ của bạn là:
             1. Trích xuất toàn bộ nội dung từ hình ảnh hoặc file PDF. Nội dung thường bao gồm nhiều bài toán được đánh số thứ tự (ví dụ: "Câu 1", "Câu 2",...).
-            2. Nếu trích xuất thành công, xác định danh sách các bài toán theo số thứ tự (ví dụ: "Câu 1", "Câu 2",...).
+            2. Nếu trích xuất thành công, xác định danh sách các bài toán theo số thứ tự (ví dụ: "Câu 1", "Câu 2",...) từ nội dung đã trích xuất.
             3. Nếu người dùng chưa nhập yêu cầu cụ thể (problem rỗng hoặc không có), trả về danh sách các bài toán đã trích xuất và hỏi: "Tớ thấy các bài toán: [danh sách]. Bạn muốn hỏi về câu nào?"
             4. Nếu không trích xuất được nội dung từ file, trả về: "Tớ không đọc được nội dung file. Bạn thử nhập thủ công bài toán nhé!"
             Định dạng phản hồi:
@@ -395,7 +410,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
                 "max_tokens": 500
             }
         else:
-            # Nếu Tesseract trích xuất được văn bản
+            # Nếu Google Cloud Vision trích xuất được văn bản
             if problem:
                 # Tách bài toán cụ thể từ extracted_text
                 specific_problem = extract_specific_problem(extracted_text, problem)
