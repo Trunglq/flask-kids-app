@@ -21,10 +21,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
-app.config['UPLOAD_FOLDER'] = 'static/images'
+app.config['UPLOAD_FOLDER'] = '/tmp'  # Thay đổi từ 'static/images' sang '/tmp'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Giới hạn file upload 16MB
 
-# Tạo thư mục static/images nếu chưa có
+# Tạo thư mục tmp nếu chưa có
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
