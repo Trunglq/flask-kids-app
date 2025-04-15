@@ -309,6 +309,11 @@
     </style>
 </head>
 <body>
+    <div id="app-config" 
+         data-loading="{{ 'true' if loading else 'false' }}" 
+         data-hint="{{ hint }}"
+         data-loading-message="{{ loading_message if loading_message else '' }}">
+    </div>
     <div class="main-container">
         <!-- Cột chính (chat box, 60%) -->
         <div class="chat-column">
@@ -466,84 +471,156 @@
     </div>
 
     <script>
+        // Add a flag to prevent duplicate requests
+        let isProcessingRequest = false;
+        
+        // Track if we need to fetch hints after submission
+        let pendingHintFetch = false;
+
+        function submitForm(action, additionalData = {}) {
+            if (isProcessingRequest) {
+                console.log("Request already in progress, ignoring...");
+                return false;
+            }
+            
+            isProcessingRequest = true;
+            console.log(`Submitting form with action=${action}`);
+            
+            // Show loading state in content section
+            const contentSection = document.querySelector('.content-section');
+            if (contentSection) {
+                contentSection.innerHTML = `
+                    <p class="hint-text">Đang xử lý yêu cầu...</p>
+                `;
+            }
+            
+            const form = document.getElementById('main-form');
+            
+            // Clear any previous action inputs
+            form.querySelectorAll('input[type="hidden"]').forEach(el => {
+                if (el.name === 'action' || el.name === 'clear_file' || 
+                    el.name === 'direct_question' || el.name === 'skip_image_processing') {
+                    el.remove();
+                }
+            });
+            
+            // Add the action input
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'action';
+            hiddenInput.value = action;
+            form.appendChild(hiddenInput);
+            
+            // Add skip_image_processing flag to prevent reprocessing images
+            const skipProcessingInput = document.createElement('input');
+            skipProcessingInput.type = 'hidden';
+            skipProcessingInput.name = 'skip_image_processing';
+            skipProcessingInput.value = 'true';
+            form.appendChild(skipProcessingInput);
+            
+            // Add any additional data
+            for (const [key, value] of Object.entries(additionalData)) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value;
+                form.appendChild(input);
+            }
+            
+            // Set flag to fetch hints if this is an ask action
+            if (action === 'ask') {
+                pendingHintFetch = true;
+            }
+            
+            // Use the form's action URL, not the form itself
+            const formAction = form.getAttribute('action') || '/kids';
+            
+            // Use fetch instead of form submission to have more control
+            const formData = new FormData(form);
+            
+            fetch(formAction, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Server responded with status: ' + response.status);
+                }
+                return response.text();
+            })
+            .then(html => {
+                console.log("Form submitted successfully");
+                
+                // Create a temporary container to parse the HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // Find the content section in the response
+                const newContentSection = tempDiv.querySelector('.content-section');
+                const newChatColumn = tempDiv.querySelector('.chat-column');
+                
+                if (newContentSection && contentSection) {
+                    // Update content section
+                    contentSection.innerHTML = newContentSection.innerHTML;
+                }
+                
+                const chatColumn = document.querySelector('.chat-column');
+                if (newChatColumn && chatColumn) {
+                    // Update chat column
+                    chatColumn.innerHTML = newChatColumn.innerHTML;
+                    // Scroll to bottom
+                    chatColumn.scrollTop = chatColumn.scrollHeight;
+                }
+                
+                isProcessingRequest = false;
+                
+                // If this was an ask action, fetch hints immediately
+                if (pendingHintFetch) {
+                    pendingHintFetch = false;
+                    console.log("Question submitted, now fetching hints...");
+                    setTimeout(() => fetchHints(), 100);
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting form:', error);
+                if (contentSection) {
+                    contentSection.innerHTML = `
+                        <p class="hint-text">Có lỗi xảy ra. Bạn thử lại nhé!</p>
+                    `;
+                }
+                isProcessingRequest = false;
+                pendingHintFetch = false;
+            });
+            
+            return false; // Prevent traditional form submission
+        }
+
         function selectProblem(problem) {
             try {
                 console.log("Selecting problem:", problem);
                 const input = document.getElementById('question-input');
                 input.value = problem;
-                const form = document.getElementById('main-form');
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = 'action';
-                hiddenInput.value = 'ask';
-                form.appendChild(hiddenInput);
-                // Thêm trường để báo cho server biết cần xóa file đính kèm
-                const clearFileInput = document.createElement('input');
-                clearFileInput.type = 'hidden';
-                clearFileInput.name = 'clear_file';
-                clearFileInput.value = 'true';
-                form.appendChild(clearFileInput);
-                form.submit();
+                
+                return submitForm('ask', {
+                    'direct_question': problem,
+                    'clear_file': 'true'
+                });
             } catch (error) {
                 console.error('Error selecting problem:', error);
                 alert('Có lỗi xảy ra khi chọn bài toán. Bạn thử lại nhé!');
+                isProcessingRequest = false;
+                return false;
             }
         }
 
         function fetchHints() {
-            console.log("Fetching hints...");
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-            fetch('/kids', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'action=fetch_hints',
-                signal: controller.signal
-            })
-            .then(response => response.text())
-            .then(html => {
-                clearTimeout(timeoutId);
-                console.log("Hints fetched successfully.");
-                document.open();
-                document.write(html);
-                document.close();
-            })
-            .catch(error => {
-                clearTimeout(timeoutId);
-                console.error('Error fetching hints:', error);
-                document.querySelector('.content-section').innerHTML = `
-                    <p class="hint-text">Có lỗi xảy ra khi lấy gợi ý. Bạn thử lại nhé!</p>
-                `;
-            });
+            return submitForm('fetch_hints');
         }
 
         function completeAttach() {
-            console.log("Completing attach...");
-            fetch('/kids', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'action=attach_complete'
-            })
-            .then(response => response.text())
-            .then(html => {
-                console.log("Attach completed successfully.");
-                document.open();
-                document.write(html);
-                document.close();
-            })
-            .catch(error => {
-                console.error('Error completing attach:', error);
-                document.querySelector('.content-section').innerHTML = `
-                    <p class="hint-text">Có lỗi xảy ra khi tải ảnh. Bạn thử lại nhé!</p>
-                `;
-            });
+            return submitForm('attach_complete');
         }
-
+        
         function showParentTip() {
             console.log("Showing parent tip...");
             const modal = document.getElementById('parentTipModal');
@@ -583,41 +660,50 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM fully loaded.");
-
-            {% if not loading and hint != "Nhập bài toán hoặc tải ảnh để nhận gợi ý!" %}
-                console.log("Clearing input field...");
-                const input = document.getElementById('question-input');
-                input.value = '';
-                input.placeholder = 'Nhập câu hỏi...';
-            {% endif %}
-
-            {% if loading %}
-                {% if loading_message == "Đang tải và trích xuất nội dung file..." %}
-                    console.log("Detected file upload, calling completeAttach...");
-                    setTimeout(completeAttach, 2000);
-                {% else %}
-                    console.log("Detected loading state, fetching hints...");
-                    fetchHints();
-                {% endif %}
-            {% endif %}
+            
+            // Handle Jinja variables safely
+            const configElement = document.getElementById('app-config');
+            if (configElement) {
+                const loading = configElement.getAttribute('data-loading') === 'true';
+                const hint = configElement.getAttribute('data-hint');
+                const loadingMessage = configElement.getAttribute('data-loading-message');
+                
+                // Clear input field if we have a response
+                if (!loading && hint && hint !== "Nhập bài toán hoặc tải ảnh để nhận gợi ý!") {
+                    console.log("Clearing input field...");
+                    const input = document.getElementById('question-input');
+                    if (input) {
+                        input.value = '';
+                        input.placeholder = 'Nhập câu hỏi...';
+                    }
+                }
+                
+                // Handle loading state without using Jinja syntax in JavaScript
+                if (loading && !isProcessingRequest) {
+                    if (loadingMessage === "Đang tải và trích xuất nội dung file...") {
+                        console.log("Detected file upload, calling completeAttach...");
+                        setTimeout(completeAttach, 2000);
+                    } else {
+                        console.log("Detected loading state, fetching hints...");
+                        setTimeout(fetchHints, 1000);
+                    }
+                }
+            }
 
             console.log("Scrolling chat column to bottom...");
             const chatColumn = document.querySelector('.chat-column');
-            chatColumn.scrollTop = chatColumn.scrollHeight;
+            if (chatColumn) {
+                chatColumn.scrollTop = chatColumn.scrollHeight;
+            }
 
             const fileInput = document.getElementById('file-input');
-            fileInput.addEventListener('change', function() {
-                if (fileInput.files.length > 0) {
-                    console.log("File selected, submitting form with action=attach_file...");
-                    const form = document.getElementById('main-form');
-                    const hiddenInput = document.createElement('input');
-                    hiddenInput.type = 'hidden';
-                    hiddenInput.name = 'action';
-                    hiddenInput.value = 'attach_file';
-                    form.appendChild(hiddenInput);
-                    form.submit();
-                }
-            });
+            if (fileInput) {
+                fileInput.addEventListener('change', function() {
+                    if (fileInput.files.length > 0 && !isProcessingRequest) {
+                        submitForm('attach_file');
+                    }
+                });
+            }
         });
     </script>
 </body>
