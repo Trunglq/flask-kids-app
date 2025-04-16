@@ -325,7 +325,7 @@
                     </div>
                 {% endif %}
                 {% if image_path %}
-                    <img src="{{ url_for('static', filename=image_path.split('static/')[1]) }}" alt="Hình minh họa" class="geometry-image">
+                    <img src="{{ url_for('serve_tmp_file', filename=image_path.split('tmp/')[1]) }}" alt="Hình minh họa" class="geometry-image">
                 {% endif %}
                 {% if loading %}
                     <div class="loading-container">
@@ -395,7 +395,7 @@
             <!-- Khu vực file đính kèm -->
             {% if attached_file %}
                 <div class="attachment-area">
-                    <a href="{{ url_for('static', filename=attached_file.replace('\\', '/').split('static/')[-1]) }}" target="_blank" class="file-link">
+                    <a href="{{ url_for('serve_tmp_file', filename=attached_file.split('/')[-1]) }}" target="_blank" class="file-link">
                         Xem file đính kèm: {{ attached_file.split('\\')[-1] if '\\' in attached_file else attached_file.split('/')[-1] }}
                     </a>
                 </div>

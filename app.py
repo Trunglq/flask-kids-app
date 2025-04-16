@@ -2,7 +2,7 @@
 import matplotlib
 matplotlib.use('Agg')  # Sử dụng backend không tương tác
 
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, make_response
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, make_response, send_from_directory
 from uuid import uuid4
 import requests
 from time import sleep, time
@@ -24,10 +24,10 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "ai-for-kids-456901-721c140182d3.
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
-app.config['UPLOAD_FOLDER'] = 'static/images'
+app.config['UPLOAD_FOLDER'] = 'tmp'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Giới hạn file upload 16MB
 
-# Tạo thư mục static/images nếu chưa có
+# Tạo thư mục tmp nếu chưa có
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
@@ -239,7 +239,7 @@ def draw_triangle():
         ax.set_aspect('equal')
         ax.axis('off')
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        image_path = f"static/images/triangle_{timestamp}.png"
+        image_path = f"tmp/triangle_{timestamp}.png"
         plt.savefig(image_path, bbox_inches='tight')
         plt.close(fig)
         logging.info(f"Triangle saved at: {image_path}")
@@ -269,7 +269,7 @@ def draw_prism():
         ax.set_aspect('equal')
         ax.axis('off')
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        image_path = f"static/images/prism_{timestamp}.png"
+        image_path = f"tmp/prism_{timestamp}.png"
         plt.savefig(image_path, bbox_inches='tight')
         plt.close(fig)
         logging.info(f"Prism saved at: {image_path}")
@@ -471,6 +471,10 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=2, delay=2):
                     problem_list = f"Tớ thấy các bài toán: {problems_str}. Bạn muốn hỏi về bài nào?"
                     
                     logging.info(f"Generated problem list: {problem_list}")
+                    session["extracted_problems"] = problem_list
+                    loading = False
+                    hint = problem_list
+                    session["extraction_status"] = "completed"
                     return [problem_list]
                 else:
                     # Không tìm thấy bài toán, vẫn giữ cách gửi API cũ
@@ -939,6 +943,13 @@ def kids():
                 except Exception as e:
                     logging.error(f"Error removing attached file: {str(e)}")
                 session["attached_file"] = None
+            
+            # Xử lý clear_extracted_problems
+            clear_extracted_problems = request.form.get("clear_extracted_problems", "false").lower() == "true"
+            if clear_extracted_problems:
+                session["extracted_problems"] = None
+                logging.info("Cleared extracted_problems due to clear_extracted_problems flag")
+                
             if question and not session.get("extracted_problems"):
                 recent = session["recent_questions"]
                 question = question[:100]
@@ -1128,6 +1139,10 @@ def api_usage():
     cost = (input_tokens / 1_000_000 * 5) + (output_tokens / 1_000_000 * 15)
     
     return f"Tổng token hôm nay ({today}): {total_tokens}<br>Chi phí ước tính: ${cost:.4f}"
+
+@app.route('/tmp/<path:filename>')
+def serve_tmp_file(filename):
+    return send_from_directory('tmp', filename)
 
 if __name__ == "__main__":
     app.run(debug=True)
