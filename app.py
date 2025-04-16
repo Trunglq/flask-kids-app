@@ -20,7 +20,7 @@ from google.cloud import vision
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Đặt đường dẫn đến file JSON chứa thông tin xác thực
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/hemera/Documents/GitHub/flask-kids-app/ai-for-kids-456901-721c140182d3.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "ai-for-kids-456901-721c140182d3.json"
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -55,13 +55,31 @@ def check_rate_limit():
 
 def extract_text_from_image(file_path):
     try:
+        logging.info(f"Attempting to extract text from image: {file_path}")
+        logging.info(f"File exists: {os.path.exists(file_path)}")
+        logging.info(f"File size: {os.path.getsize(file_path)} bytes")
+        
+        # Check if the credential file exists before proceeding
+        cred_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        logging.info(f"Using credential file: {cred_path}")
+        logging.info(f"Credential file exists: {os.path.exists(cred_path)}")
+        
         client = vision.ImageAnnotatorClient()
+        logging.info("Created Vision API client")
+        
         with open(file_path, 'rb') as image_file:
             content = image_file.read()
+            logging.info(f"Read {len(content)} bytes from image file")
+        
         image = vision.Image(content=content)
+        logging.info("Created Vision Image object")
 
+        logging.info("Calling Vision API text_detection")
         response = client.text_detection(image=image)
+        logging.info(f"Received response from Vision API: {response}")
+        
         texts = response.text_annotations
+        logging.info(f"Number of text annotations: {len(texts) if texts else 0}")
 
         if texts:
             text = texts[0].description
@@ -72,7 +90,7 @@ def extract_text_from_image(file_path):
             return None
 
     except Exception as e:
-        logging.error(f"Error extracting text from image: {str(e)}")
+        logging.error(f"Error extracting text from image: {str(e)}", exc_info=True)
         return None
 
 def extract_specific_problem(extracted_text, problem):
@@ -278,7 +296,7 @@ def standardize_math_input(question):
     question = re.sub(r'(\w+)\^2', r'\1^2', question)
     return question
 
-def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
+def call_xai_api(problem=None, grade=None, file_path=None, retries=2, delay=2):
     check_rate_limit()
     
     url = "https://api.x.ai/v1/chat/completions"
@@ -357,6 +375,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
         """
 
     if file_path:
+        logging.info(f"Processing file: {file_path}")
         # Kiểm tra file trước khi xử lý
         if not os.path.exists(file_path):
             logging.error(f"File not found: {file_path}")
@@ -365,9 +384,22 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
         file_type = "image/png" if file_path.lower().endswith(('.png', '.jpg', '.jpeg')) else "application/pdf"
         logging.info(f"File type detected: {file_type}")
 
-        # Trích xuất văn bản từ ảnh bằng Google Cloud Vision
-        extracted_text = extract_text_from_image(file_path)
-        if not extracted_text:
+        # Try to process with vision API first, if it fails, fall back to sending file directly to xAI
+        vision_extraction_success = False
+        try:
+            # Trích xuất văn bản từ ảnh bằng Google Cloud Vision
+            extracted_text = extract_text_from_image(file_path)
+            if extracted_text:
+                logging.info("Successfully extracted text with Vision API")
+                vision_extraction_success = True
+            else:
+                logging.warning("Vision API returned no text")
+        except Exception as e:
+            logging.error(f"Error using Vision API: {str(e)}", exc_info=True)
+            extracted_text = None
+        
+        # If Vision API failed or returned no text, try direct file upload to xAI
+        if not vision_extraction_success:
             logging.warning("No text extracted from image. Falling back to API with file.")
             user_prompt = """
             Người dùng đã tải lên một hình ảnh hoặc file PDF chứa các bài toán. Nhiệm vụ của bạn là:
@@ -410,7 +442,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
                 "max_tokens": 500
             }
         else:
-            # Nếu Google Cloud Vision trích xuất được văn bản
+            # Continue with regular text processing since Vision API succeeded
             if problem:
                 # Tách bài toán cụ thể từ extracted_text
                 specific_problem = extract_specific_problem(extracted_text, problem)
@@ -422,38 +454,59 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
                 Lớp: {grade}
                 """
             else:
-                # Nếu không có problem, yêu cầu API trả về danh sách bài toán
-                user_prompt = f"""
-                Dưới đây là nội dung trích xuất từ file ảnh:\n{extracted_text}\n
-                Nhiệm vụ của bạn là:
-                1. Xác định danh sách các bài toán theo số thứ tự (ví dụ: "Câu 1", "Câu 2",...) từ nội dung đã trích xuất.
-                2. Trả về danh sách các bài toán đã trích xuất và hỏi: "Tớ thấy các bài toán: [danh sách]. Bạn muốn hỏi về câu nào?"
-                3. Nếu không xác định được bài toán nào từ nội dung, trả về: "Tớ không nhận diện được bài toán nào từ nội dung. Bạn thử nhập thủ công nhé!"
-                Định dạng phản hồi:
-                - Nếu là danh sách bài toán: trả về một dòng duy nhất với nội dung: "Tớ thấy các bài toán: [danh sách]. Bạn muốn hỏi về câu nào?"
-                - Nếu là thông báo lỗi: một dòng duy nhất.
-                """
-            payload = {
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": system_prompt
-                    },
-                    {
-                        "role": "user",
-                        "content": user_prompt
-                    }
-                ],
-                "model": "grok-3-latest",
-                "stream": False,
-                "temperature": 0.7,
-                "max_tokens": 500
-            }
+                # Tự động tạo danh sách bài toán từ extracted_text thay vì gửi cho API
+                logging.info("Automatically generating problem list from extracted text")
+                problems = []
+                patterns = [r'Bài\s+\d+', r'Câu\s+\d+', r'Bài\s+toán\s+\d+']
+                
+                for pattern in patterns:
+                    matches = re.findall(pattern, extracted_text)
+                    if matches:
+                        problems.extend(matches)
+                        break
+                
+                if problems:
+                    # Create problem list text
+                    problems_str = ", ".join(problems)
+                    problem_list = f"Tớ thấy các bài toán: {problems_str}. Bạn muốn hỏi về bài nào?"
+                    
+                    logging.info(f"Generated problem list: {problem_list}")
+                    return [problem_list]
+                else:
+                    # Không tìm thấy bài toán, vẫn giữ cách gửi API cũ
+                    logging.info("No problems detected in pattern matching, falling back to API")
+                    user_prompt = f"""
+                    Dưới đây là nội dung trích xuất từ file ảnh:\n{extracted_text}\n
+                    Nhiệm vụ của bạn là:
+                    1. Xác định danh sách các bài toán theo số thứ tự (ví dụ: "Câu 1", "Câu 2",...) từ nội dung đã trích xuất.
+                    2. Trả về danh sách các bài toán đã trích xuất và hỏi: "Tớ thấy các bài toán: [danh sách]. Bạn muốn hỏi về câu nào?"
+                    3. Nếu không xác định được bài toán nào từ nội dung, trả về: "Tớ không nhận diện được bài toán nào từ nội dung. Bạn thử nhập thủ công nhé!"
+                    Định dạng phản hồi:
+                    - Nếu là danh sách bài toán: trả về một dòng duy nhất với nội dung: "Tớ thấy các bài toán: [danh sách]. Bạn muốn hỏi về câu nào?"
+                    - Nếu là thông báo lỗi: một dòng duy nhất.
+                    """
+        payload = {
+            "messages": [
+                {
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": user_prompt
+                }
+            ],
+            "model": "grok-3-latest",
+            "stream": False,
+            "temperature": 0.7,
+            "max_tokens": 500
+        }
 
         for attempt in range(retries):
             try:
                 logging.info(f"Calling xAI API (attempt {attempt + 1}/{retries})...")
-                response = requests.post(url, headers=headers, json=payload, timeout=15)
+                response = requests.post(url, headers=headers, json=payload, timeout=20)
+                logging.info(f"xAI API response status: {response.status_code}")
                 response.raise_for_status()
                 data = response.json()
                 logging.info(f"API Response (Status {response.status_code}): {data}")
@@ -481,7 +534,8 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
                     return lines[:(3 if grade == "2" else 5)]
                 else:
                     logging.warning(f"Unexpected API response format: {data}")
-                    return ["Tớ gặp trục trặc khi lấy gợi ý. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
+                    if attempt == retries - 1:
+                        return ["Tớ gặp trục trặc khi lấy gợi ý. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
             except requests.exceptions.RequestException as e:
                 logging.error(f"Attempt {attempt + 1}/{retries} - Error calling xAI API: {str(e)}")
                 if attempt < retries - 1:
@@ -490,6 +544,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
                 else:
                     return ["Tớ gặp khó khăn khi kết nối với API. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
     else:
+        # Regular text query without file
         user_prompt = f"""
         Bài toán: {problem}
         Lớp: {grade}
@@ -513,7 +568,8 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
         for attempt in range(retries):
             try:
                 logging.info(f"Calling xAI API (attempt {attempt + 1}/{retries})...")
-                response = requests.post(url, headers=headers, json=payload, timeout=15)
+                response = requests.post(url, headers=headers, json=payload, timeout=20)
+                logging.info(f"xAI API response status: {response.status_code}")
                 response.raise_for_status()
                 data = response.json()
                 logging.info(f"API Response (Status {response.status_code}): {data}")
@@ -536,7 +592,8 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
                     return lines[:(3 if grade == "2" else 5)]
                 else:
                     logging.warning(f"Unexpected API response format: {data}")
-                    return ["Tớ gặp trục trặc khi lấy gợi ý. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
+                    if attempt == retries - 1:
+                        return ["Tớ gặp trục trặc khi lấy gợi ý. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
             except requests.exceptions.RequestException as e:
                 logging.error(f"Attempt {attempt + 1}/{retries} - Error calling xAI API: {str(e)}")
                 if attempt < retries - 1:
@@ -592,6 +649,8 @@ def kids():
         session["attached_file"] = None
     if "extracted_problems" not in session:
         session["extracted_problems"] = None
+    if "extraction_status" not in session:
+        session["extraction_status"] = ""
 
     if request.method == "GET":
         session["current_question"] = ""
@@ -601,6 +660,7 @@ def kids():
         session["attached_file"] = None
         session["recent_questions"] = []
         session["extracted_problems"] = None
+        session["extraction_status"] = ""
         session.modified = True
 
     hint = "Nhập bài toán hoặc tải ảnh để nhận gợi ý!"
@@ -622,91 +682,253 @@ def kids():
             session["image_path"] = None
             session["recent_questions"] = []
             session["extracted_problems"] = None
+            
+            # Remove old file if exists
             if session.get("attached_file"):
                 try:
                     os.remove(session["attached_file"])
                     logging.info(f"Removed old attached file: {session['attached_file']}")
                 except Exception as e:
                     logging.error(f"Error removing old attached file: {str(e)}")
+            
+            # Check if file is valid
             if file and file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.pdf')):
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 filename = f"upload_{timestamp}_{file.filename}"
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                
                 try:
+                    # Save file
                     file.save(file_path)
                     file_size = os.path.getsize(file_path)
                     logging.info(f"File saved: {file_path}, size: {file_size} bytes")
-                    session["attached_file"] = file_path
-                    logging.info(f"File uploaded successfully: {file_path}")
+                    # Normalize path for consistent handling
+                    session["attached_file"] = file_path.replace('\\', '/')
+                    logging.info(f"File uploaded successfully: {session['attached_file']}")
+                    
+                    # Set status and UI
+                    hint = "File đã được tải lên thành công. Đang tự động trích xuất nội dung..."
+                    loading = True
+                    loading_message = "Đang trích xuất nội dung file. Quá trình này có thể mất vài giây..."
+                    session["extraction_status"] = "extracting"
+                    
+                    # Try immediate extraction
+                    try:
+                        extracted_text = extract_text_from_image(session['attached_file'])
+                        if extracted_text:
+                            logging.info("Successfully extracted text immediately")
+                            
+                            # Parse problems directly from the text
+                            problems = []
+                            patterns = [r'Bài\s+\d+', r'Câu\s+\d+', r'Bài\s+toán\s+\d+']
+                            
+                            for pattern in patterns:
+                                matches = re.findall(pattern, extracted_text)
+                                if matches:
+                                    problems.extend(matches)
+                                    break
+                            
+                            if problems:
+                                # Create problem list text
+                                problems_str = ", ".join(problems)
+                                problem_list = f"Tớ thấy các bài toán: {problems_str}. Bạn muốn hỏi về bài nào?"
+                                
+                                logging.info(f"Immediately generated problem list: {problem_list}")
+                                session["extracted_problems"] = problem_list
+                                loading = False
+                                hint = problem_list
+                                session["extraction_status"] = "completed"
+                    except Exception as e:
+                        logging.error(f"Error extracting text immediately: {str(e)}")
+                        # Continue with normal flow if immediate extraction fails
+                
                 except Exception as e:
                     logging.error(f"Error saving uploaded file: {str(e)}")
                     hint = "Có lỗi khi lưu file. Bạn thử tải lại nhé!"
                     session["attached_file"] = None
                     loading = False
-                    session.modified = True
-                    return render_template("kids.html", hint=hint, tip=tip, loading=loading, 
-                                         current_question=session["current_question"], 
-                                         current_step=session["current_step"],
-                                         recent_questions=session["recent_questions"], 
-                                         image_path=session.get("image_path"),
-                                         attached_file=session.get("attached_file"),
-                                         extracted_problems=session.get("extracted_problems"),
-                                         loading_message=loading_message,
-                                         timestamp=int(time()))
-                hint = "Ảnh đã được tải lên. Đang trích xuất nội dung..."
-                loading = True
-                loading_message = "Đang tải và trích xuất nội dung file..."
             else:
                 hint = "File không hợp lệ. Vui lòng tải lên file ảnh (PNG, JPG, JPEG) hoặc PDF."
                 loading = False
                 session["attached_file"] = None
+            
             session.modified = True
+            
+            # Prepare response
+            response = make_response(render_template("kids.html", hint=hint, tip=tip, loading=loading, 
+                                        current_question=session["current_question"], 
+                                        current_step=session["current_step"],
+                                        recent_questions=session["recent_questions"], 
+                                        image_path=session.get("image_path"),
+                                        attached_file=session.get("attached_file"),
+                                        extracted_problems=session.get("extracted_problems"),
+                                        extraction_status=session.get("extraction_status", ""),
+                                        loading_message=loading_message,
+                                        timestamp=int(time())))
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+            return response
 
-        elif action == "attach_complete":
-            logging.info("Starting attach_complete action...")
+        elif action == "extract_content":
+            logging.info("Starting content extraction...")
+            if not session.get("attached_file"):
+                logging.error("No attached_file found in session")
+                hint = "Không tìm thấy file để trích xuất. Bạn thử tải lại nhé!"
+                session["attached_file"] = None
+                session["extraction_status"] = ""
+                loading = False
+                session.modified = True
+                return render_template("kids.html", hint=hint, tip=tip, loading=loading, 
+                                     current_question=session["current_question"], 
+                                     current_step=session["current_step"],
+                                     recent_questions=session["recent_questions"], 
+                                     image_path=session.get("image_path"),
+                                     attached_file=session.get("attached_file"),
+                                     extracted_problems=session.get("extracted_problems"),
+                                     extraction_status=session.get("extraction_status", ""),
+                                     loading_message=loading_message,
+                                     timestamp=int(time()))
+
+            logging.info(f"Attached file path: {session['attached_file']}")
+            if not os.path.exists(session['attached_file']):
+                logging.error(f"File does not exist at path: {session['attached_file']}")
+                hint = "File không tồn tại trên server. Bạn thử tải lại nhé!"
+                session["attached_file"] = None
+                session["extraction_status"] = ""
+                loading = False
+                session.modified = True
+                return render_template("kids.html", hint=hint, tip=tip, loading=loading, 
+                                     current_question=session["current_question"], 
+                                     current_step=session["current_step"],
+                                     recent_questions=session["recent_questions"], 
+                                     image_path=session.get("image_path"),
+                                     attached_file=session.get("attached_file"),
+                                     extracted_problems=session.get("extracted_problems"),
+                                     extraction_status=session.get("extraction_status", ""),
+                                     loading_message=loading_message,
+                                     timestamp=int(time()))
+            
+            hint = "Đang trích xuất nội dung từ file..."
+            loading = True
+            loading_message = "Quá trình này có thể mất vài giây, vui lòng đợi..."
+            session["extraction_status"] = "extracting"
+            session.modified = True
+            
+            # First return response to update UI, then perform extraction
+            response = make_response(render_template("kids.html", hint=hint, tip=tip, loading=loading, 
+                                               current_question=session["current_question"], 
+                                               current_step=session["current_step"],
+                                               recent_questions=session["recent_questions"], 
+                                               image_path=session.get("image_path"),
+                                               attached_file=session.get("attached_file"),
+                                               extracted_problems=session.get("extracted_problems"),
+                                               extraction_status=session.get("extraction_status", ""),
+                                               loading_message=loading_message,
+                                               timestamp=int(time())))
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+            return response
+
+        elif action == "check_extraction":
+            logging.info("Checking extraction status...")
+            
+            # First check if we already have extracted problems
+            if session.get("extracted_problems"):
+                hint = session["extracted_problems"]
+                logging.info(f"Already have extracted problems: {hint}")
+                loading = False
+                session["extraction_status"] = "completed"
+                session.modified = True
+                return jsonify({"status": "completed", "result": hint})
+            
+            # If no attached file, return error
+            if not session.get("attached_file"):
+                logging.info("No attached_file found in session")
+                return jsonify({"status": "error", "message": "No extraction in progress"})
+            
             try:
-                if not session.get("attached_file"):
-                    hint = "Không tìm thấy file để trích xuất. Bạn thử tải lại nhé!"
-                    session["attached_file"] = None
-                    loading = False
-                    session.modified = True
-                    return render_template("kids.html", hint=hint, tip=tip, loading=loading, 
-                                         current_question=session["current_question"], 
-                                         current_step=session["current_step"],
-                                         recent_questions=session["recent_questions"], 
-                                         image_path=session.get("image_path"),
-                                         attached_file=session.get("attached_file"),
-                                         extracted_problems=session.get("extracted_problems"),
-                                         loading_message=loading_message,
-                                         timestamp=int(time()))
-
+                logging.info(f"Checking Google credentials file exists: {os.environ['GOOGLE_APPLICATION_CREDENTIALS']}")
+                logging.info(f"Credential file exists: {os.path.exists(os.environ['GOOGLE_APPLICATION_CREDENTIALS'])}")
+                
+                # Try to extract text directly
+                extracted_text = extract_text_from_image(session['attached_file'])
+                if extracted_text:
+                    logging.info("Successfully extracted text with Vision API")
+                    
+                    # Parse problems directly from the text
+                    problems = []
+                    patterns = [r'Bài\s+\d+', r'Câu\s+\d+', r'Bài\s+toán\s+\d+']
+                    
+                    for pattern in patterns:
+                        matches = re.findall(pattern, extracted_text)
+                        if matches:
+                            problems.extend(matches)
+                            break
+                    
+                    if problems:
+                        # Create problem list text
+                        problems_str = ", ".join(problems)
+                        problem_list = f"Tớ thấy các bài toán: {problems_str}. Bạn muốn hỏi về bài nào?"
+                        
+                        logging.info(f"Generated problem list: {problem_list}")
+                        session["extracted_problems"] = problem_list
+                        session["extraction_status"] = "completed"
+                        session.modified = True
+                        return jsonify({"status": "completed", "result": problem_list})
+                    else:
+                        logging.info("No problems found in extracted text")
+                
+                # Fall back to API if direct extraction didn't work
                 grade = session.get("grade", "4")
                 cache_key = f"extracted_{session['attached_file']}"
                 if cache_key in EXTRACTED_CONTENT:
                     extracted_result = EXTRACTED_CONTENT[cache_key]
-                    logging.info("Using cached extracted content.")
+                    logging.info(f"Using cached extracted content: {extracted_result}")
                 else:
+                    logging.info("Calling call_xai_api function...")
                     extracted_result = call_xai_api("", grade, session["attached_file"])
+                    logging.info(f"call_xai_api returned: {extracted_result}")
                     EXTRACTED_CONTENT[cache_key] = extracted_result
                     if len(EXTRACTED_CONTENT) > 50:
                         EXTRACTED_CONTENT.pop(next(iter(EXTRACTED_CONTENT)))
-                    logging.info(f"Extracted content: {extracted_result}")
-                if "Tớ thấy các bài toán" in extracted_result[0]:
+                
+                # Process results
+                result = ""
+                if len(extracted_result) > 0 and "Tớ thấy các bài toán" in extracted_result[0]:
+                    logging.info("Found problem list in response")
                     session["extracted_problems"] = extracted_result[0]
-                    hint = extracted_result[0]
-                elif "Tớ không đọc được" in extracted_result[0] or "Tớ gặp khó khăn" in extracted_result[0]:
-                    hint = f"{extracted_result[0]} Bạn có thể nhập thủ công bài toán nhé!"
+                    result = extracted_result[0]
+                    session["extraction_status"] = "completed"
+                    session.modified = True
+                    return jsonify({"status": "completed", "result": result})
+                elif len(extracted_result) > 0 and any(x in extracted_result[0] for x in ["Tớ không đọc được", "Tớ gặp khó khăn", "Tớ không nhận diện được"]):
+                    logging.info(f"Error message detected in response: {extracted_result[0]}")
+                    result = f"{extracted_result[0]} Bạn có thể nhập thủ công bài toán nhé!"
                     session["attached_file"] = None
+                    session["extraction_status"] = "completed"
+                    session.modified = True
+                    return jsonify({"status": "completed", "result": result})
                 else:
-                    hint = "Tớ không trích xuất được nội dung. Bạn thử nhập thủ công nhé!"
+                    logging.warning(f"Unexpected response format: {extracted_result}")
+                    result = "Tớ không trích xuất được nội dung rõ ràng. Bạn thử nhập thủ công bài toán nhé!"
                     session["attached_file"] = None
-                loading = False
+                    session["extraction_status"] = "completed"
+                    session.modified = True
+                    return jsonify({"status": "completed", "result": result})
+                
             except Exception as e:
-                logging.error(f"Error during attach_complete: {str(e)}")
-                hint = "Có lỗi xảy ra khi trích xuất nội dung. Bạn thử tải lại hoặc nhập thủ công nhé!"
-                session["attached_file"] = None
-                loading = False
-            session.modified = True
+                logging.error(f"Error during extraction check: {str(e)}", exc_info=True)
+                return jsonify({
+                    "status": "error", 
+                    "message": "Có lỗi xảy ra khi trích xuất nội dung. Bạn thử lại sau."
+                })
+
+        elif action == "attach_complete":
+            logging.info("Starting attach_complete action (DEPRECATED)...")
+            # This is the old implementation, keeping for backward compatibility
+            # In new code, we'll use extraction_status and check_extraction instead
 
         elif action == "ask":
             logging.info(f"Starting ask action with question: {question}")
@@ -908,4 +1130,4 @@ def api_usage():
     return f"Tổng token hôm nay ({today}): {total_tokens}<br>Chi phí ước tính: ${cost:.4f}"
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
