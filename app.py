@@ -1,7 +1,3 @@
-# Đặt backend Agg trước khi import pyplot
-import matplotlib
-matplotlib.use('Agg')  # Sử dụng backend không tương tác
-
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, make_response, send_from_directory
 from uuid import uuid4
 import requests
@@ -228,59 +224,6 @@ def get_parent_tip_from_api(question, retries=1, delay=2):
             else:
                 return "Hãy khuyến khích con chia bài toán thành các bước nhỏ và hỏi: 'Con nghĩ bước đầu tiên mình cần làm gì?'"
 
-def draw_triangle():
-    try:
-        logging.info("Drawing triangle...")
-        fig, ax = plt.subplots()
-        triangle = np.array([[0, 0], [3, 0], [1.5, 2.6], [0, 0]])
-        ax.plot(triangle[:, 0], triangle[:, 1], 'b-')
-        ax.text(0, 0, 'A', fontsize=12, ha='right')
-        ax.text(3, 0, 'B', fontsize=12, ha='left')
-        ax.text(1.5, 2.6, 'C', fontsize=12, ha='center', va='bottom')
-        ax.set_xlim(-1, 4)
-        ax.set_ylim(-1, 3)
-        ax.set_aspect('equal')
-        ax.axis('off')
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        image_path = f"tmp/triangle_{timestamp}.png"
-        plt.savefig(image_path, bbox_inches='tight')
-        plt.close(fig)
-        logging.info(f"Triangle saved at: {image_path}")
-        return image_path
-    except Exception as e:
-        logging.error(f"Error drawing triangle: {str(e)}")
-        return None
-
-def draw_prism():
-    try:
-        logging.info("Drawing prism...")
-        fig, ax = plt.subplots()
-        base_bottom = np.array([[0, 0], [3, 0], [1.5, 1.5], [0, 0]])
-        base_top = base_bottom + np.array([0, 3])
-        ax.plot(base_bottom[:, 0], base_bottom[:, 1], 'b-')
-        ax.plot(base_top[:, 0], base_top[:, 1], 'b-')
-        for i in range(3):
-            ax.plot([base_bottom[i, 0], base_top[i, 0]], [base_bottom[i, 1], base_top[i, 1]], 'b-')
-        ax.text(0, 0, 'A', fontsize=12, ha='right')
-        ax.text(3, 0, 'B', fontsize=12, ha='left')
-        ax.text(1.5, 1.5, 'C', fontsize=12, ha='center', va='bottom')
-        ax.text(0, 3, "A'", fontsize=12, ha='right')
-        ax.text(3, 3, "B'", fontsize=12, ha='left')
-        ax.text(1.5, 4.5, "C'", fontsize=12, ha='center', va='bottom')
-        ax.set_xlim(-1, 4)
-        ax.set_ylim(-1, 5)
-        ax.set_aspect('equal')
-        ax.axis('off')
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        image_path = f"tmp/prism_{timestamp}.png"
-        plt.savefig(image_path, bbox_inches='tight')
-        plt.close(fig)
-        logging.info(f"Prism saved at: {image_path}")
-        return image_path
-    except Exception as e:
-        logging.error(f"Error drawing prism: {str(e)}")
-        return None
-
 def is_geometry_problem(question):
     geometry_keywords = ["tam giác", "hình lăng trụ", "đường thẳng", "góc", "hình hộp", "hình lập phương", "hình vuông", "hình chữ nhật"]
     return any(keyword in question.lower() for keyword in geometry_keywords)
@@ -352,10 +295,10 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=2, delay=2):
 
         Chương trình toán lớp 7 ở Việt Nam bao gồm:
         - Đại số:
-          + Số hữu tỉ, số thực: Các phép tính với số hữu tỉ, số vô tỉ, căn bậc hai, giá trị tuyệt đối, làm tròn số, tỉ lệ thức, đại lượng tỉ lệ thuận/nghịch (ví dụ: Tính \( \frac{3}{4} + \frac{5}{6} \), tìm \( x \) trong \( \frac{2}{3} = \frac{x}{9} \)).
-          + Hàm số và đồ thị: Khái niệm hàm số, đồ thị hàm số \( y = ax \) (a ≠ 0).
+          + Số hữu tỉ, số thực: Các phép tính với số hữu tỉ, số vô tỉ, căn bậc hai, giá trị tuyệt đối, làm tròn số, tỉ lệ thức, đại lượng tỉ lệ thuận/nghịch (ví dụ: Tính ( \frac{3}{4} + \frac{5}{6} ), tìm ( x ) trong ( \frac{2}{3} = \frac{x}{9} )).
+          + Hàm số và đồ thị: Khái niệm hàm số, đồ thị hàm số ( y = ax ) (a ≠ 0).
           + Thống kê: Thu thập dữ liệu, bảng tần số, tần suất, mốt, số trung bình cộng.
-          + Biểu thức đại số: Đơn thức, đa thức, cộng trừ đa thức, nghiệm của đa thức một biến (ví dụ: Rút gọn \( (2x^2 - 3x + 5) + (x^2 + 4x - 1) \)).
+          + Biểu thức đại số: Đơn thức, đa thức, cộng trừ đa thức, nghiệm của đa thức một biến (ví dụ: Rút gọn ( (2x^2 - 3x + 5) + (x^2 + 4x - 1) )).
         - Hình học:
           + Góc và đường thẳng song song: Góc ở vị trí đặc biệt, tia phân giác, hai đường thẳng song song, tiên đề Euclid (ví dụ: Tính góc so le trong).
           + Tam giác: Tổng các góc, các trường hợp bằng nhau (cạnh-cạnh-cạnh, cạnh-góc-cạnh, góc-cạnh-góc), tam giác cân, tam giác đều, đường trung trực.
