@@ -7,9 +7,7 @@ from uuid import uuid4
 import requests
 from time import sleep, time
 from datetime import datetime, date
-import matplotlib.pyplot as plt
 import os
-import numpy as np
 import re
 import base64
 import logging
@@ -24,12 +22,17 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "ai-for-kids-456901-721c140182d3.
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
-app.config['UPLOAD_FOLDER'] = 'tmp'
+app.config['UPLOAD_FOLDER'] = '/tmp/ai-kids-uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Giới hạn file upload 16MB
 
-# Tạo thư mục tmp nếu chưa có
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
+# Tạo thư mục uploads nếu chưa có
+try:
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        os.makedirs(app.config['UPLOAD_FOLDER'])
+except Exception as e:
+    logging.error(f"Error creating upload directory: {str(e)}")
+    # Sử dụng /tmp nếu không tạo được thư mục
+    app.config['UPLOAD_FOLDER'] = '/tmp'
 
 # Dictionary toàn cục để lưu trữ hint_cache và extracted_content
 HINT_CACHE = {}
@@ -283,11 +286,7 @@ def is_geometry_problem(question):
     return any(keyword in question.lower() for keyword in geometry_keywords)
 
 def get_geometry_image(question):
-    question_lower = question.lower()
-    if "tam giác" in question_lower:
-        return draw_triangle()
-    elif "hình lăng trụ" in question_lower:
-        return draw_prism()
+    # Trả về None thay vì vẽ hình
     return None
 
 def standardize_math_input(question):
