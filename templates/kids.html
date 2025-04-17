@@ -406,7 +406,58 @@
         <div class="popular-column">
             <h3>Những bài toán phổ biến lớp {{ session.get('grade', '4') }} 📚</h3>
             <div class="problem-list">
-                {% if session.get('grade', '4') == '4' %}
+                {% if session.get('grade', '4') == '1' %}
+                    <!-- Bài toán lớp 1 -->
+                    <div class="problem-item" onclick="selectProblem('Tính: 5 + 3')">
+                        Tính: 5 + 3
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Tính: 9 - 4')">
+                        Tính: 9 - 4
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Lan có 6 quả táo, mẹ cho thêm 2 quả. Hỏi Lan có bao nhiêu quả táo?')">
+                        Lan có 6 quả táo, mẹ cho thêm 2 quả. Hỏi Lan có bao nhiêu quả táo?
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('An có 7 cái kẹo, An cho bạn Mai 3 cái. Hỏi An còn lại bao nhiêu cái kẹo?')">
+                        An có 7 cái kẹo, An cho bạn Mai 3 cái. Hỏi An còn lại bao nhiêu cái kẹo?
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Vẽ 1 hình tam giác, 1 hình tròn và 1 hình vuông')">
+                        Vẽ 1 hình tam giác, 1 hình tròn và 1 hình vuông
+                    </div>
+                {% elif session.get('grade', '4') == '2' %}
+                    <!-- Bài toán lớp 2 -->
+                    <div class="problem-item" onclick="selectProblem('Thực hiện phép tính: 52 + 18 - 33')">
+                        Thực hiện phép tính: 52 + 18 - 33
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Điền số thích hợp vào chỗ chấm: 9 + … - … = 15')">
+                        Điền số thích hợp vào chỗ chấm: 9 + … - … = 15
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Tìm x biết: x - 29 = 12')">
+                        Tìm x biết: x - 29 = 12
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15')">
+                        Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Đặt tính rồi tính: 72 - 29')">
+                        Đặt tính rồi tính: 72 - 29
+                    </div>
+                {% elif session.get('grade', '4') == '3' %}
+                    <!-- Bài toán lớp 3 -->
+                    <div class="problem-item" onclick="selectProblem('Tính: 245 + 378')">
+                        Tính: 245 + 378
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Tính: 486 ÷ 2')">
+                        Tính: 486 ÷ 2
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Tính chu vi hình tam giác có 3 cạnh lần lượt là 5 cm, 7 cm và 8 cm.')">
+                        Tính chu vi hình tam giác có 3 cạnh lần lượt là 5 cm, 7 cm và 8 cm.
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Một cửa hàng có 120 quả táo, bán được 45 quả. Hỏi còn lại bao nhiêu quả?')">
+                        Một cửa hàng có 120 quả táo, bán được 45 quả. Hỏi còn lại bao nhiêu quả?
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Thực hiện phép tính: 7 × 8')">
+                        Thực hiện phép tính: 7 × 8
+                    </div>
+                {% elif session.get('grade', '4') == '4' %}
                     <div class="problem-item" onclick="selectProblem('Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.')">
                         Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.
                     </div>
@@ -421,6 +472,23 @@
                     </div>
                     <div class="problem-item" onclick="selectProblem('Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?')">
                         Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?
+                    </div>
+                {% elif session.get('grade', '4') == '6' %}
+                    <!-- Bài toán lớp 6 -->
+                    <div class="problem-item" onclick="selectProblem('Tính giá trị biểu thức: -15 + 7')">
+                        Tính giá trị biểu thức: -15 + 7
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Giải phương trình: 2x + 3 = 11')">
+                        Giải phương trình: 2x + 3 = 11
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Tính diện tích hình tam giác có đáy 8 cm và chiều cao 5 cm.')">
+                        Tính diện tích hình tam giác có đáy 8 cm và chiều cao 5 cm.
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Viết dưới dạng số thập phân: 3/4')">
+                        Viết dưới dạng số thập phân: 3/4
+                    </div>
+                    <div class="problem-item" onclick="selectProblem('Bảng sau ghi điểm toán của 40 học sinh: Điểm 5: 4 học sinh, điểm 6: 8 học sinh, điểm 7: 10 học sinh, điểm 8: 12 học sinh, điểm 9: 6 học sinh. Tính điểm trung bình của 40 học sinh.')">
+                        Tính điểm trung bình của 40 học sinh trong bảng điểm toán
                     </div>
                 {% elif session.get('grade', '4') == '7' %}
                     <!-- Bài toán lớp 7 -->
@@ -439,23 +507,23 @@
                     <div class="problem-item" onclick="selectProblem('Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.')">
                         Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.
                     </div>
-                {% elif session.get('grade', '4') == '2' %}
-                    <!-- Bài toán lớp 2 -->
-                    <div class="problem-item" onclick="selectProblem('Thực hiện phép tính: 52 + 18 - 33')">
-                        Thực hiện phép tính: 52 + 18 - 33
+                {% else %}
+                    <!-- Mặc định hiển thị bài toán lớp 4 nếu không có lớp được chọn -->
+                    <div class="problem-item" onclick="selectProblem('Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.')">
+                        Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.
                     </div>
-                    <div class="problem-item" onclick="selectProblem('Điền số thích hợp vào chỗ chấm: 9 + … - … = 15')">
-                        Điền số thích hợp vào chỗ chấm: 9 + … - … = 15
+                    <div class="problem-item" onclick="selectProblem('Cộng hai phân số 3/7 và 2/7.')">
+                        Cộng hai phân số 3/7 và 2/7.
                     </div>
-                    <div class="problem-item" onclick="selectProblem('Tìm x biết: x - 29 = 12')">
-                        Tìm x biết: x - 29 = 12
+                    <div class="problem-item" onclick="selectProblem('Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?')">
+                        Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?
                     </div>
-                    <div class="problem-item" onclick="selectProblem('Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15')">
-                        Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15
+                    <div class="problem-item" onclick="selectProblem('Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?')">
+                        Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?
                     </div>
-                    <div class="problem-item" onclick="selectProblem('Đặt tính rồi tính: 72 - 29')">
-                        Đặt tính rồi tính: 72 - 29
-                    </div>                
+                    <div class="problem-item" onclick="selectProblem('Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?')">
+                        Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?
+                    </div>
                 {% endif %}
             </div>
         </div>
