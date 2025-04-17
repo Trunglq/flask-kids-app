@@ -681,7 +681,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             # Lưu log chi tiết hơn về response 
             logging.info(f"API Response (Status {response.status_code})")
             if "choices" in data and len(data["choices"]) > 0:
-                response_text = data["choices"][0]["message"]["content"]
+                response_text = data["choices"][0]["message"]["content"].strip()
                 lines = response_text.strip().split("\n")
                 if len(lines) == 1:
                     if "Tớ thấy các bài toán" in lines[0]:
@@ -1229,8 +1229,7 @@ def kids():
                 logging.error(f"Error fetching hints: {str(e)}")
                 loading = False
                 hint = "Có lỗi xảy ra khi lấy gợi ý. Bạn thử lại sau nhé!"
-                session["attached_file"] = None
-                session["extracted_problems"] = None
+                # KHÔNG xóa attached_file hay extracted_problems
                 session.modified = True
 
         elif action == "explain_more":
@@ -1250,21 +1249,12 @@ def kids():
             session["cache_key"] = None
             session["current_question"] = ""
             session["image_path"] = None
-            session["extracted_problems"] = None
-            if session.get("attached_file"):
-                try:
-                    os.remove(session["attached_file"])
-                    logging.info(f"Removed attached file: {session['attached_file']}")
-                except Exception as e:
-                    logging.error(f"Error removing attached file: {str(e)}")
-            session["attached_file"] = None
-            session["recent_questions"] = []
+            # KHÔNG xóa attached_file hay extracted_problems
             session.modified = True
 
         elif action == "clear_history":
             session["recent_questions"] = []
-            session["attached_file"] = None
-            session["extracted_problems"] = None
+            # KHÔNG xóa attached_file hay extracted_problems
             session.modified = True
             hint = "Lịch sử bài toán đã được xóa!"
 
