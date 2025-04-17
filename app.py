@@ -9,12 +9,27 @@ import base64
 import logging
 from PIL import Image
 from google.cloud import vision
+import json
+import tempfile
 
 # Cấu hình logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Đặt đường dẫn đến file JSON chứa thông tin xác thực
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "ai-for-kids-456901-721c140182d3.json"
+# Kiểm tra nếu GOOGLE_APPLICATION_CREDENTIALS chứa nội dung JSON trực tiếp
+if os.environ.get('GOOGLE_APPLICATION_CREDENTIALS', '').startswith('{'):
+    try:
+        creds_content = json.loads(os.environ['GOOGLE_APPLICATION_CREDENTIALS'])
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as temp_file:
+            json.dump(creds_content, temp_file)
+            temp_file_path = temp_file.name
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = temp_file_path
+        logging.info(f'Temporary credentials file created at: {temp_file_path}')
+    except Exception as e:
+        logging.error(f'Error creating temporary credentials file: {str(e)}')
+else:
+    # Nếu không, giả sử nó là đường dẫn file như thông thường
+    logging.info(f'Using GOOGLE_APPLICATION_CREDENTIALS as file path: {os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")}')
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
