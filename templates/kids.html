@@ -4,15 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Helper for Kids</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        html, body {
-            font-family: 'Quicksand', Arial, Helvetica, sans-serif;
-        }
         body {
-            font-family: 'Quicksand', Arial, sans-serif;
+            font-family: Arial, sans-serif;
             background-image: url("{{ url_for('static', filename='background.jpg') }}");
             background-size: cover;
             background-position: center;
@@ -115,7 +109,7 @@
             min-height: 40px;
             max-height: 150px;
             overflow-y: auto;
-            font-family: 'Quicksand', Arial, sans-serif;
+            font-family: Arial, sans-serif;
         }
         .ask-btn, .upload-btn {
             padding: 0 15px !important;
@@ -508,6 +502,11 @@
     </style>
 </head>
 <body>
+    <div id="app-config" 
+         data-loading="{{ 'true' if loading else 'false' }}" 
+         data-hint="{{ hint }}"
+         data-loading-message="{{ loading_message if loading_message else '' }}">
+    </div>
     <div class="main-container">
         <!-- Cột chính (chat box, 60%) -->
         <div class="chat-column">
@@ -519,7 +518,7 @@
                     </div>
                 {% endif %}
                 {% if image_path %}
-                    <img src="{{ url_for('static', filename=image_path.split('static/')[1]) }}" alt="Hình minh họa" class="geometry-image">
+                    <img src="{{ url_for('serve_tmp_file', filename=image_path.split('tmp/')[1]) }}" alt="Hình minh họa" class="geometry-image">
                 {% endif %}
                 {% if loading %}
                     <div class="loading-container">
@@ -527,20 +526,61 @@
                         <p class="loading-text">{{ loading_message }}</p>
                     </div>
                 {% else %}
-                    {% if hint.startswith('Tớ không') or hint.startswith('Hãy chọn') or hint.startswith('Bạn chưa') or hint.startswith('Có lỗi') or hint.startswith('Bạn giỏi') or hint.startswith('Lịch sử') or hint.startswith('Ảnh đã') or hint.startswith('File không') or hint.startswith('Nhập bài toán') %}
-                        <p class="hint-text">{{ hint }}</p>
+                    {% if hint.startswith('Tớ không') or hint.startswith('Hãy chọn') or hint.startswith('Bạn chưa') or hint.startswith('Có lỗi') or hint.startswith('Bạn giỏi') or hint.startswith('Lịch sử') or hint.startswith('Ảnh đã') or hint.startswith('File không') or hint.startswith('Nhập bài toán') or hint.startswith('File đã') or hint.startswith('Tớ thấy các bài toán') %}
+                        {% if hint.startswith('Tớ thấy các bài toán') %}
+                            <p class="hint-text">
+                                Tớ thấy các bài toán: 
+                                {% set problems_list = hint.split(': ')[1].split('. ')[0].split(', ') %}
+                                {% for problem in problems_list %}
+                                    <span class="problem-link" onclick="selectProblemFromList('{{ problem.strip() }}')" style="color: #1E88E5; text-decoration: underline; cursor: pointer;">{{ problem.strip() }}{% if not loop.last %}, {% endif %}</span>
+                                {% endfor %}
+                                . Bạn muốn hỏi về bài nào?
+                            </p>
+                        {% else %}
+                            <p class="hint-text">{{ hint }}</p>
+                        {% endif %}
+                        
+                        {% if extraction_status == 'ready' %}
+                        <!-- Extraction is now handled automatically -->
+                        {% endif %}
                     {% else %}
-                        <p class="hint-text">Gợi ý {{ current_step + 1 }}: {{ hint }}</p>
+                        {% if hint.startswith('Tớ thấy các bài toán') %}
+                            <p class="hint-text">
+                                Tớ thấy các bài toán: 
+                                {% set problems_list = hint.split(': ')[1].split('. ')[0].split(', ') %}
+                                {% for problem in problems_list %}
+                                    <span class="problem-link" onclick="selectProblemFromList('{{ problem.strip() }}')" style="color: #1E88E5; text-decoration: underline; cursor: pointer;">{{ problem.strip() }}{% if not loop.last %}, {% endif %}</span>
+                                {% endfor %}
+                                . Bạn muốn hỏi về bài nào?
+                            </p>
+                        {% else %}
+                            {% if hint == "Nhập bài toán, bài tập Tiếng Việt hoặc tải ảnh đề bài để nhận gợi ý nhé! Đừng ngại hỏi bất cứ điều gì, tớ luôn sẵn sàng giúp bạn! 😊" %}
+                            <p class="hint-text">
+                              <b>Hướng dẫn:</b> Bạn hãy nhập một bài toán Toán hoặc một bài tập Tiếng Việt/Văn vào ô bên dưới, hoặc tải lên ảnh chụp đề bài để nhận gợi ý từng bước phù hợp với lứa tuổi.<br>
+                              <span style="color:#4CAF50;">
+                                Bạn có thể hỏi về phép tính, bài toán có lời văn, hoặc bài tập đọc hiểu, luyện từ và câu, tập làm văn... Nếu tải ảnh, hệ thống sẽ tự động trích xuất và gợi ý cho bạn.
+                              </span>
+                            </p>
+                            {% else %}
+                            <p class="hint-text">{% if current_step > 0 %}Gợi ý {{ current_step + 1 }}: {% endif %}{{ hint }}</p>
+                            {% endif %}
+                        {% endif %}
                     {% endif %}
                 {% endif %}
                 <!-- Khu vực danh sách bài toán -->
-                {% if extracted_problems %}
+                {% if extracted_problems and not hint.startswith('Tớ thấy các bài toán') %}
                     <div class="problem-list-container">
-                        {{ extracted_problems }}
+                        {% set problems_text = extracted_problems %}
+                        {% set problems_list = problems_text.split(': ')[1].split('. ')[0].split(', ') %}
+                        Tớ thấy các bài toán: 
+                        {% for problem in problems_list %}
+                            <span class="problem-link" onclick="selectProblemFromList('{{ problem.strip() }}')" style="color: #1E88E5; text-decoration: underline; cursor: pointer;">{{ problem.strip() }}{% if not loop.last %}, {% endif %}</span>
+                        {% endfor %}
+                        . Bạn muốn hỏi về bài nào?
                     </div>
                 {% endif %}
             </div>
-            {% if hint != "Nhập bài toán hoặc tải ảnh để nhận gợi ý!" and not loading %}
+            {% if hint != "Nhập bài toán, bài tập Tiếng Việt hoặc tải ảnh đề bài để nhận gợi ý nhé! Đừng ngại hỏi bất cứ điều gì, tớ luôn sẵn sàng giúp bạn! 😊" and hint != "File đã được tải lên thành công. Đang tự động trích xuất nội dung..." and not loading %}
                 <form method="POST" id="action-form">
                     <div class="button-container">
                         <button type="submit" name="action" value="explain_more" class="full-width-btn explain-more-btn">
@@ -557,8 +597,8 @@
             <!-- Khu vực file đính kèm -->
             {% if attached_file %}
                 <div class="attachment-area">
-                    <a href="{{ url_for('static', filename=attached_file.split('static/')[1]) }}" target="_blank" class="file-link">
-                        Xem file đính kèm: {{ attached_file.split('/')[-1] }}
+                    <a href="{{ url_for('serve_tmp_file', filename=attached_file.split('/')[-1]) }}" target="_blank" class="file-link">
+                        Xem file đính kèm: {{ attached_file.split('\\')[-1] if '\\' in attached_file else attached_file.split('/')[-1] }}
                     </a>
                 </div>
             {% endif %}
@@ -566,60 +606,14 @@
 
         <!-- Cột danh sách bài toán phổ biến (20%) -->
         <div class="popular-column">
-            <h3>Những bài toán phổ biến lớp {{ session.get('grade', '4') }} 📚</h3>
+            <h3>
+                {% if session.get('subject', 'math') == 'math' %}
+                    Những bài toán phổ biến lớp {{ session.get('grade', '4') }} 📚
+                {% else %}
+                    Những bài Tiếng Việt/Văn phổ biến lớp {{ session.get('grade', '4') }} 📖
+                {% endif %}
+            </h3>
             <div class="problem-list">
-<<<<<<< HEAD
-                {% if session.get('grade', '4') == '4' %}
-                    <div class="problem-item" onclick="selectProblem('Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.')">
-                        Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Cộng hai phân số 3/7 và 2/7.')">
-                        Cộng hai phân số 3/7 và 2/7.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?')">
-                        Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?')">
-                        Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?')">
-                        Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?
-                    </div>
-                {% elif session.get('grade', '4') == '7' %}
-                    <!-- Bài toán lớp 7 -->
-                    <div class="problem-item" onclick="selectProblem('Tính giá trị biểu thức: 3/4 + 5/6 - 1/3.')">
-                        Tính giá trị biểu thức: 3/4 + 5/6 - 1/3.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Tìm x trong tỉ lệ thức: 2/3 = x/9.')">
-                        Tìm x trong tỉ lệ thức: 2/3 = x/9.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Rút gọn: (2x^2 - 3x + 5) + (x^2 + 4x - 1).')">
-                        Rút gọn: (2x^2 - 3x + 5) + (x^2 + 4x - 1).
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Cho tam giác ABC có góc A = 50°, góc B = 60°. Tính góc C.')">
-                        Cho tam giác ABC có góc A = 50°, góc B = 60°. Tính góc C.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.')">
-                        Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.
-                    </div>
-                {% elif session.get('grade', '4') == '2' %}
-                    <!-- Bài toán lớp 2 -->
-                    <div class="problem-item" onclick="selectProblem('Thực hiện phép tính: 52 + 18 - 33')">
-                        Thực hiện phép tính: 52 + 18 - 33
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Điền số thích hợp vào chỗ chấm: 9 + … - … = 15')">
-                        Điền số thích hợp vào chỗ chấm: 9 + … - … = 15
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Tìm x biết: x - 29 = 12')">
-                        Tìm x biết: x - 29 = 12
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15')">
-                        Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Đặt tính rồi tính: 72 - 29')">
-                        Đặt tính rồi tính: 72 - 29
-                    </div>                
-=======
                 {% if session.get('subject', 'math') == 'math' %}
                     {% if session.get('grade', '4') == '1' %}
                         <!-- Bài toán lớp 1 -->
@@ -736,7 +730,6 @@
                         <div class="problem-item" onclick="selectProblem('Viết đoạn văn ngắn tả một người bạn.')">Viết đoạn văn ngắn tả một người bạn.</div>
                         <div class="problem-item" onclick="selectProblem('Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”')">Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”</div>
                     {% endif %}
->>>>>>> b3f39e2 (feat: allow mobile users to capture and upload photos directly via camera input (accept/capture attributes))
                 {% endif %}
             </div>
         </div>
@@ -768,8 +761,8 @@
                         <span>❓</span> Hỏi
                     </button>
                     <label class="upload-btn">
-                        <span>📎</span> Đính kèm ảnh / Chụp ảnh
-                        <input type="file" name="file" id="file-input" class="file-input" accept="image/png,image/jpeg,image/jpg,image/*" capture="environment">
+                        <span>📎</span> Đính kèm ảnh
+                        <input type="file" name="file" id="file-input" class="file-input" accept="image/png,image/jpeg,image/jpg">
                     </label>
                 </div>
             </div>
@@ -786,8 +779,6 @@
     </div>
 
     <script>
-<<<<<<< HEAD
-=======
         // Add a flag to prevent duplicate requests
         let isProcessingRequest = false;
         // Track extraction related errors
@@ -1011,83 +1002,148 @@
             return false; // Prevent traditional form submission
         }
 
->>>>>>> b3f39e2 (feat: allow mobile users to capture and upload photos directly via camera input (accept/capture attributes))
         function selectProblem(problem) {
             try {
                 console.log("Selecting problem:", problem);
                 const input = document.getElementById('question-input');
                 input.value = problem;
-                const form = document.getElementById('main-form');
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = 'action';
-                hiddenInput.value = 'ask';
-                form.appendChild(hiddenInput);
-                // Thêm trường để báo cho server biết cần xóa file đính kèm
-                const clearFileInput = document.createElement('input');
-                clearFileInput.type = 'hidden';
-                clearFileInput.name = 'clear_file';
-                clearFileInput.value = 'true';
-                form.appendChild(clearFileInput);
-                form.submit();
+                
+                resetProcessingState();
+                return submitForm('ask', {
+                    'direct_question': problem
+                });
             } catch (error) {
                 console.error('Error selecting problem:', error);
                 alert('Có lỗi xảy ra khi chọn bài toán. Bạn thử lại nhé!');
+                isProcessingRequest = false;
+                return false;
             }
         }
 
         function fetchHints() {
             console.log("Fetching hints...");
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-            fetch('/kids', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'action=fetch_hints',
-                signal: controller.signal
-            })
-            .then(response => response.text())
-            .then(html => {
-                clearTimeout(timeoutId);
-                console.log("Hints fetched successfully.");
-                document.open();
-                document.write(html);
-                document.close();
-            })
-            .catch(error => {
-                clearTimeout(timeoutId);
-                console.error('Error fetching hints:', error);
-                document.querySelector('.content-section').innerHTML = `
-                    <p class="hint-text">Có lỗi xảy ra khi lấy gợi ý. Bạn thử lại nhé!</p>
-                `;
-            });
+            resetProcessingState();
+            return submitForm('fetch_hints');
         }
 
         function completeAttach() {
-            console.log("Completing attach...");
-            fetch('/kids', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'action=attach_complete'
-            })
-            .then(response => response.text())
-            .then(html => {
-                console.log("Attach completed successfully.");
-                document.open();
-                document.write(html);
-                document.close();
-            })
-            .catch(error => {
-                console.error('Error completing attach:', error);
-                document.querySelector('.content-section').innerHTML = `
-                    <p class="hint-text">Có lỗi xảy ra khi tải ảnh. Bạn thử lại nhé!</p>
+            console.log("Starting completeAttach...");
+            // Add a longer timeout for completeAttach
+            setTimeout(() => {
+                if (isProcessingRequest) {
+                    console.log("Setting a 10 second timeout for completeAttach");
+                    showFileProcessingUpdate("Đang xử lý file...");
+                    setTimeout(() => {
+                        if (isProcessingRequest) {
+                            console.log("File processing taking longer than expected");
+                            showFileProcessingUpdate("Việc xử lý file đang mất nhiều thởi gian hơn dự kiến...");
+                        }
+                    }, 10000);
+                }
+            }, 3000);
+            
+            return submitForm('attach_complete');
+        }
+        
+        function showFileProcessingUpdate(message) {
+            const contentSection = document.querySelector('.content-section');
+            if (contentSection) {
+                contentSection.innerHTML = `
+                    <div class="loading-container">
+                        <div class="loading-bar"></div>
+                        <p class="loading-text">${message}</p>
+                    </div>
                 `;
-            });
+            }
+        }
+        
+        function handleExtractedProblems(html) {
+            console.log("Checking for extracted problems in response");
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            
+            // First, check if there's any hint containing "Tớ thấy các bài toán"
+            const hints = tempDiv.querySelectorAll('.hint-text');
+            if (hints.length > 0) {
+                console.log("Found hints:", hints.length);
+                for (const hint of hints) {
+                    console.log("Hint content:", hint.textContent);
+                    if (hint.textContent.includes("Tớ thấy các bài toán") || 
+                        hint.textContent.includes("Bài 1") || 
+                        hint.textContent.includes("Câu 1")) {
+                        console.log("Found extracted problems in hint!");
+                        
+                        // Update the UI directly
+                        const contentSection = document.querySelector('.content-section');
+                        if (contentSection) {
+                            contentSection.innerHTML = `
+                                <p class="hint-text">${hint.textContent}</p>
+                            `;
+                        }
+                        
+                        // Clear loading state
+                        isProcessingRequest = false;
+                        return true;
+                    }
+                }
+            }
+            
+            // Then check for problem list container
+            const problemListContainer = tempDiv.querySelector('.problem-list-container');
+            if (problemListContainer) {
+                console.log("Found problem list container:", problemListContainer.textContent);
+                // Extract the list of problems
+                const problemText = problemListContainer.textContent;
+                if (problemText.includes("Tớ thấy các bài toán") || 
+                    problemText.includes("Bài 1") || 
+                    problemText.includes("Câu 1")) {
+                    console.log("Found problem list text");
+                    
+                    // Update the UI with the problem list
+                    const contentSection = document.querySelector('.content-section');
+                    if (contentSection) {
+                        contentSection.innerHTML = `
+                            <div class="problem-list-container">
+                                ${problemText}
+                            </div>
+                        `;
+                    }
+                    
+                    // Clear loading state
+                    isProcessingRequest = false;
+                    return true;
+                }
+            }
+            
+            // As a final fallback, check for any text that might contain the problems list
+            const fullText = tempDiv.textContent;
+            if (fullText.includes("Tớ thấy các bài toán") || 
+                (fullText.includes("Bài 1") && fullText.includes("Bài 2")) || 
+                (fullText.includes("Câu 1") && fullText.includes("Câu 2"))) {
+                console.log("Found problems in full text");
+                
+                // Extract the relevant portion with regex
+                const regex = /(Tớ thấy các bài toán[^\.]+)/;
+                const match = regex.exec(fullText);
+                if (match) {
+                    const problemsText = match[1];
+                    console.log("Extracted problems text:", problemsText);
+                    
+                    // Update the UI
+                    const contentSection = document.querySelector('.content-section');
+                    if (contentSection) {
+                        contentSection.innerHTML = `
+                            <p class="hint-text">${problemsText}</p>
+                        `;
+                    }
+                    
+                    // Clear loading state
+                    isProcessingRequest = false;
+                    return true;
+                }
+            }
+            
+            return false;
         }
 
         function showParentTip() {
@@ -1120,6 +1176,23 @@
             modal.style.display = 'none';
         }
 
+        function showError(message) {
+            console.error("Error:", message);
+            const contentSection = document.querySelector('.content-section');
+            if (contentSection) {
+                contentSection.innerHTML = `
+                    <p class="hint-text" style="color: #e53935;">${message}</p>
+                    <p>Bạn có thể:</p>
+                    <ul>
+                        <li>Thử tải lại trang</li>
+                        <li>Thử tải lên file khác</li>
+                        <li>Nhập câu hỏi trực tiếp vào ô nhập</li>
+                    </ul>
+                `;
+            }
+            isProcessingRequest = false;
+        }
+
         window.onclick = function(event) {
             const modal = document.getElementById('parentTipModal');
             if (event.target == modal) {
@@ -1129,42 +1202,168 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM fully loaded.");
-
-            {% if not loading and hint != "Nhập bài toán hoặc tải ảnh để nhận gợi ý!" %}
-                console.log("Clearing input field...");
-                const input = document.getElementById('question-input');
-                input.value = '';
-                input.placeholder = 'Nhập câu hỏi...';
-            {% endif %}
-
-            {% if loading %}
-                {% if loading_message == "Đang tải và trích xuất nội dung file..." %}
-                    console.log("Detected file upload, calling completeAttach...");
-                    setTimeout(completeAttach, 2000);
-                {% else %}
-                    console.log("Detected loading state, fetching hints...");
-                    fetchHints();
-                {% endif %}
-            {% endif %}
+            makeProblemsClickable();
+            
+            // Handle Jinja variables safely
+            const configElement = document.getElementById('app-config');
+            if (configElement) {
+                const loading = configElement.getAttribute('data-loading') === 'true';
+                const hint = configElement.getAttribute('data-hint');
+                const loadingMessage = configElement.getAttribute('data-loading-message');
+                
+                // Clear input field if we have a response
+                if (!loading && hint && hint !== "Nhập bài toán, bài tập Tiếng Việt hoặc tải ảnh đề bài để nhận gợi ý nhé! Đừng ngại hỏi bất cứ điều gì, tớ luôn sẵn sàng giúp bạn! 😊" && hint !== "File đã được tải lên thành công. Đang tự động trích xuất nội dung...") {
+                    console.log("Clearing input field...");
+                    const input = document.getElementById('question-input');
+                    if (input) {
+                        input.value = '';
+                        input.placeholder = 'Nhập câu hỏi...';
+                    }
+                }
+                
+                // Handle loading state without using Jinja syntax in JavaScript
+                if (loading && !isProcessingRequest) {
+                    if (loadingMessage === "Đang tải và trích xuất nội dung file...") {
+                        console.log("Detected file upload, calling completeAttach...");
+                        setTimeout(completeAttach, 2000);
+                    } else {
+                        console.log("Detected loading state, fetching hints...");
+                        setTimeout(fetchHints, 1000);
+                    }
+                }
+            }
 
             console.log("Scrolling chat column to bottom...");
             const chatColumn = document.querySelector('.chat-column');
-            chatColumn.scrollTop = chatColumn.scrollHeight;
+            if (chatColumn) {
+                chatColumn.scrollTop = chatColumn.scrollHeight;
+            }
 
             const fileInput = document.getElementById('file-input');
-            fileInput.addEventListener('change', function() {
-                if (fileInput.files.length > 0) {
-                    console.log("File selected, submitting form with action=attach_file...");
-                    const form = document.getElementById('main-form');
-                    const hiddenInput = document.createElement('input');
-                    hiddenInput.type = 'hidden';
-                    hiddenInput.name = 'action';
-                    hiddenInput.value = 'attach_file';
-                    form.appendChild(hiddenInput);
-                    form.submit();
+            if (fileInput) {
+                fileInput.addEventListener('change', function() {
+                    if (fileInput.files.length > 0 && !isProcessingRequest) {
+                        console.log("File selected, submitting form...");
+                        resetProcessingState();
+                        submitForm('attach_file');
+                    }
+                });
+            }
+        });
+        
+        function resetProcessingState() {
+            console.log("Resetting processing state");
+            isProcessingRequest = false;
+            isExtractionMode = false;
+            pendingHintFetch = false;
+            extractionErrorCount = 0;
+        }
+        
+        function startExtraction() {
+            console.log("Starting extraction process...");
+            resetProcessingState();
+            submitForm('extract_content');
+            
+            // Start polling for extraction status after a short delay
+            setTimeout(() => {
+                pollExtractionStatus();
+            }, 1000);
+        }
+        
+        function pollExtractionStatus() {
+            console.log("Polling extraction status...");
+            if (!isProcessingRequest || !isExtractionMode) {
+                console.log("No extraction in progress or not in extraction mode, stopping poll");
+                return;
+            }
+            
+            // Make AJAX request to check status
+            fetch('/kids', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=check_extraction',
+                cache: 'no-store'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Extraction status:", data);
+                
+                if (data.status === 'completed') {
+                    // Update UI with the result
+                    const contentSection = document.querySelector('.content-section');
+                    if (contentSection) {
+                        // Check if the result contains problem list
+                        if (data.result.includes("Tớ thấy các bài toán")) {
+                            contentSection.innerHTML = `
+                                <div class="problem-list-container">
+                                    ${data.result}
+                                </div>
+                            `;
+                        } else {
+                            contentSection.innerHTML = `
+                                <p class="hint-text">${data.result}</p>
+                            `;
+                        }
+                    }
+                    
+                    // Clear processing state
+                    isProcessingRequest = false;
+                    console.log("Extraction completed");
+                } else if (data.status === 'error') {
+                    // Show error message
+                    showError(data.message || "Có lỗi xảy ra khi trích xuất nội dung");
+                    console.error("Extraction error:", data.message);
+                } else {
+                    // Still processing, poll again after delay
+                    console.log("Extraction still in progress, polling again in 2 seconds...");
+                    setTimeout(pollExtractionStatus, 2000);
+                    
+                    // Update loading message
+                    const loadingText = document.querySelector('.loading-text');
+                    if (loadingText) {
+                        loadingText.textContent = "Đang trích xuất nội dung... Quá trình này có thể mất từ 10-20 giây";
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Error checking extraction status:", error);
+                // If error, still try again a few times
+                extractionErrorCount = (extractionErrorCount || 0) + 1;
+                if (extractionErrorCount < 3) {
+                    setTimeout(pollExtractionStatus, 3000);
+                } else {
+                    showError("Không thể kết nối với server để kiểm tra trạng thái. Bạn thử tải lại trang.");
+                    isProcessingRequest = false;
                 }
             });
-        });
+        }
+
+        function selectProblemFromList(problem) {
+            try {
+                console.log("Selecting problem from list:", problem);
+                const input = document.getElementById('question-input');
+                input.value = problem;
+                
+                resetProcessingState();
+                return submitForm('ask', {
+                    'direct_question': problem,
+                    'clear_extracted_problems': 'true'
+                });
+            } catch (error) {
+                console.error('Error selecting problem from list:', error);
+                alert('Có lỗi xảy ra khi chọn bài toán. Bạn thử lại nhé!');
+                isProcessingRequest = false;
+                return false;
+            }
+        }
     </script>
+    <script src="{{ url_for('static', filename='js/kids.js') }}"></script>
 </body>
 </html>
