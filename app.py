@@ -11,6 +11,7 @@ from PIL import Image
 from google.cloud import vision
 import json
 import tempfile
+import unicodedata
 
 # Cấu hình logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -110,46 +111,50 @@ def extract_text_from_image(file_path):
 def extract_specific_problem(extracted_text, problem):
     """
     Tách bài toán cụ thể từ extracted_text dựa trên problem (ví dụ: "Câu 5").
-    Trả về bài toán đầy đủ (ví dụ: "Câu 5. Số thực là đơn thức có bậc ...").
-    Cho phép khớp mềm: tìm dòng bắt đầu bằng problem, bất kể ký tự tiếp theo là gì (dấu chấm, hai chấm, khoảng trắng...)
+    Trả về bài toán đầy đủ (ví dụ: "Câu 5. ...").
+    Cho phép khớp mềm: tìm dòng chứa problem ở bất kỳ vị trí nào, không phân biệt hoa thường, unicode, khoảng trắng.
     """
     try:
+        def normalize(s):
+            return unicodedata.normalize('NFKC', s).lower().replace(" ", " ").strip()
+
         problem = problem.strip()
-        # Normalize problem: remove trailing dot/colon/space
         base_problem = problem
         if base_problem.lower().startswith("câu"):
             base_problem = "Câu" + base_problem[3:]
         base_problem = base_problem.rstrip(".: ")
+        base_problem_norm = normalize(base_problem)
 
         lines = extracted_text.split('\n')
         problem_text = ""
         found = False
-        # Tìm dòng bắt đầu bằng "Câu N" (bất kể ký tự tiếp theo là gì)
+        # Tìm dòng chứa "Câu N" ở bất kỳ vị trí nào
         for i, line in enumerate(lines):
             l = line.strip()
-            if l.startswith(base_problem):
-                # Đảm bảo ký tự tiếp theo là số, dấu chấm, hai chấm, hoặc khoảng trắng
-                after = l[len(base_problem):len(base_problem)+2]
-                if after and (after[0] in ".: " or after[0].isdigit()):
-                    found = True
-                    problem_text = l
-                    for j in range(i + 1, len(lines)):
-                        next_line = lines[j].strip()
-                        if next_line.startswith("Câu"):
-                            break
-                        if next_line:
-                            problem_text += "\n" + next_line
-                    break
-        # Nếu không tìm thấy, thử fuzzy match (dòng chứa problem ở đầu, bất kể ký tự tiếp theo)
+            l_norm = normalize(l)
+            if base_problem_norm in l_norm:
+                found = True
+                # Lấy từ dòng này đến trước dòng chứa "Câu N+1" hoặc hết bài
+                problem_text = l
+                for j in range(i + 1, len(lines)):
+                    next_line = lines[j].strip()
+                    next_line_norm = normalize(next_line)
+                    if next_line_norm.startswith("câu ") and next_line_norm != base_problem_norm:
+                        break
+                    if next_line:
+                        problem_text += "\n" + next_line
+                break
+        # Nếu không tìm thấy, thử fuzzy match trên toàn bộ đoạn text
         if not found:
             for i, line in enumerate(lines):
-                l = line.strip()
-                if l.lower().startswith(base_problem.lower()):
+                l_norm = normalize(line)
+                if base_problem_norm.split()[0] in l_norm:
                     found = True
-                    problem_text = l
+                    problem_text = line.strip()
                     for j in range(i + 1, len(lines)):
                         next_line = lines[j].strip()
-                        if next_line.startswith("Câu"):
+                        next_line_norm = normalize(next_line)
+                        if next_line_norm.startswith("câu ") and next_line_norm != base_problem_norm:
                             break
                         if next_line:
                             problem_text += "\n" + next_line
@@ -158,7 +163,7 @@ def extract_specific_problem(extracted_text, problem):
             logging.info(f"Extracted specific problem: {problem_text}")
             return problem_text
         else:
-            logging.warning(f"Could not find problem: {problem}")
+            logging.warning(f"Could not find problem: {problem}\n--- Extracted text for debug ---\n{extracted_text}")
             return None
     except Exception as e:
         logging.error(f"Error extracting specific problem: {str(e)}")
