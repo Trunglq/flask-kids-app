@@ -111,32 +111,49 @@ def extract_specific_problem(extracted_text, problem):
     """
     Tách bài toán cụ thể từ extracted_text dựa trên problem (ví dụ: "Câu 5").
     Trả về bài toán đầy đủ (ví dụ: "Câu 5. Số thực là đơn thức có bậc ...").
+    Cho phép khớp mềm: tìm dòng bắt đầu bằng problem, bất kể ký tự tiếp theo là gì (dấu chấm, hai chấm, khoảng trắng...)
     """
     try:
-        # Chuẩn hóa problem
         problem = problem.strip()
-        if problem.lower().startswith("câu"):
-            problem = "Câu" + problem[3:]
+        # Normalize problem: remove trailing dot/colon/space
+        base_problem = problem
+        if base_problem.lower().startswith("câu"):
+            base_problem = "Câu" + base_problem[3:]
+        base_problem = base_problem.rstrip(".: ")
 
-        # Chia extracted_text thành các dòng
         lines = extracted_text.split('\n')
         problem_text = ""
         found = False
-
-        # Tìm bài toán bắt đầu bằng problem
+        # Tìm dòng bắt đầu bằng "Câu N" (bất kể ký tự tiếp theo là gì)
         for i, line in enumerate(lines):
-            if line.strip().startswith(problem):
-                found = True
-                problem_text = line.strip()
-                # Thêm các dòng tiếp theo cho đến khi gặp bài toán tiếp theo (bắt đầu bằng "Câu")
-                for j in range(i + 1, len(lines)):
-                    next_line = lines[j].strip()
-                    if next_line.startswith("Câu"):
-                        break
-                    if next_line:
-                        problem_text += "\n" + next_line
-                break
-
+            l = line.strip()
+            if l.startswith(base_problem):
+                # Đảm bảo ký tự tiếp theo là số, dấu chấm, hai chấm, hoặc khoảng trắng
+                after = l[len(base_problem):len(base_problem)+2]
+                if after and (after[0] in ".: " or after[0].isdigit()):
+                    found = True
+                    problem_text = l
+                    for j in range(i + 1, len(lines)):
+                        next_line = lines[j].strip()
+                        if next_line.startswith("Câu"):
+                            break
+                        if next_line:
+                            problem_text += "\n" + next_line
+                    break
+        # Nếu không tìm thấy, thử fuzzy match (dòng chứa problem ở đầu, bất kể ký tự tiếp theo)
+        if not found:
+            for i, line in enumerate(lines):
+                l = line.strip()
+                if l.lower().startswith(base_problem.lower()):
+                    found = True
+                    problem_text = l
+                    for j in range(i + 1, len(lines)):
+                        next_line = lines[j].strip()
+                        if next_line.startswith("Câu"):
+                            break
+                        if next_line:
+                            problem_text += "\n" + next_line
+                    break
         if found:
             logging.info(f"Extracted specific problem: {problem_text}")
             return problem_text
@@ -557,7 +574,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             Chương trình Ngữ Văn lớp 7 ở Việt Nam bao gồm:
             - Văn học dân gian: Truyện cổ tích, truyền thuyết, truyện cười, ca dao, tục ngữ, vè.
             - Văn học viết: Truyện ngắn, tiểu thuyết, kịch, thơ, ký.
-            - Lý luận văn học: Thể loại văn học, đề tài, chủ đề, cốt truyện, không gian và thời gian nghệ thuật.
+            - Lý luận văn học: Thể loại văn học, đề tài, chủ đề, cốt truyện, không gian và thởi gian nghệ thuật.
             - Tiếng Việt: Từ ghép, từ láy; các biện pháp tu từ (ẩn dụ, hoán dụ, điệp từ); dấu câu.
             - Làm văn: Văn tự sự, văn miêu tả, văn biểu cảm, văn thuyết minh, văn nghị luận.
 
