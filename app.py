@@ -2,7 +2,7 @@
 import matplotlib
 matplotlib.use('Agg')  # Sử dụng backend không tương tác
 
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, make_response
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, make_response, send_from_directory
 from uuid import uuid4
 import requests
 from time import sleep, time
@@ -365,7 +365,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=1, delay=2):
 
         Chương trình toán lớp 7 ở Việt Nam bao gồm:
         - Đại số:
-          + Số hữu tỉ, số thực: Các phép tính với số hữu tỉ, số vô tỉ, căn bậc hai, giá trị tuyệt đối, làm tròn số, tỉ lệ thức, đại lượng tỉ lệ thuận/nghịch (ví dụ: Tính \( \frac{3}{4} + \frac{5}{6} \), tìm \( x \) trong \( \frac{2}{3} = \frac{x}{9} \)).
+          + Số hữư tỉ, số thực: Các phép tính với số hữư tỉ, số vô tỉ, căn bậc hai, giá trị tuyệt đối, làm tròn số, tỉ lệ thức, đại lượng tỉ lệ thuận/nghịch (ví dụ: Tính \( \frac{3}{4} + \frac{5}{6} \), tìm \( x \) trong \( \frac{2}{3} = \frac{x}{9} \)).
           + Hàm số và đồ thị: Khái niệm hàm số, đồ thị hàm số \( y = ax \) (a ≠ 0).
           + Thống kê: Thu thập dữ liệu, bảng tần số, tần suất, mốt, số trung bình cộng.
           + Biểu thức đại số: Đơn thức, đa thức, cộng trừ đa thức, nghiệm của đa thức một biến (ví dụ: Rút gọn \( (2x^2 - 3x + 5) + (x^2 + 4x - 1) \)).
@@ -936,6 +936,10 @@ def api_usage():
     cost = (input_tokens / 1_000_000 * 5) + (output_tokens / 1_000_000 * 15)
     
     return f"Tổng token hôm nay ({today}): {total_tokens}<br>Chi phí ước tính: ${cost:.4f}"
+
+@app.route('/tmp/<filename>')
+def serve_tmp_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == "__main__":
     app.run(debug=False)
