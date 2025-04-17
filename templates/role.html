@@ -37,6 +37,13 @@
             font-size: 18px;
             margin-bottom: 20px;
         }
+        .intro {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            text-align: justify;
+        }
         form {
             display: flex;
             flex-direction: column;
@@ -69,11 +76,21 @@
         .role-btn:hover {
             background-color: #e68900;
         }
+        .grade-group {
+            font-weight: bold;
+            color: #1E88E5;
+            text-align: left;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Chào bạn! 👋</h2>
+        <div class="intro">
+            <p>AI For Kids là dự án hỗ trợ học sinh tiểu học và THCS học toán thông qua trí tuệ nhân tạo. Ứng dụng cung cấp gợi ý từng bước phù hợp với trình độ học sinh, giúp các em hiểu bài và phát triển kỹ năng giải toán, đồng thời hỗ trợ phụ huynh trong việc hướng dẫn con học tập.</p>
+        </div>
         <p>Bạn là ai? Hãy chọn vai trò và lớp học nhé!</p>
   <form method="POST" action="{{ url_for('role') }}">
     <label for="role">Bạn là:</label>
@@ -83,13 +100,17 @@
     </select>
     <label for="grade">Chọn lớp:</label>
     <select name="grade" id="grade" required>
-        <option value="2">Lớp 1</option>
-        <option value="2">Lớp 2</option>
-        <option value="2">Lớp 3</option>
-        <option value="4">Lớp 4</option>
-        <option value="7">Lớp 5</option>
-        <option value="7">Lớp 6</option>
-        <option value="7">Lớp 7</option>
+        <optgroup label="Cấp 1 (Tiểu học)">
+            <option value="1">Lớp 1</option>
+            <option value="2">Lớp 2</option>
+            <option value="3">Lớp 3</option>
+            <option value="4">Lớp 4</option>
+            <option value="5">Lớp 5</option>
+        </optgroup>
+        <optgroup label="Cấp 2 (THCS)">
+            <option value="6">Lớp 6</option>
+            <option value="7">Lớp 7</option>
+        </optgroup>
     </select>
     <button type="submit">Tiếp tục</button>
 </form>
