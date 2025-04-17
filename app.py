@@ -430,7 +430,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             Chương trình Ngữ Văn lớp 7 ở Việt Nam bao gồm:
             - Văn học dân gian: Truyện cổ tích, truyền thuyết, truyện cười, ca dao, tục ngữ, vè.
             - Văn học viết: Truyện ngắn, tiểu thuyết, kịch, thơ, ký.
-            - Lý luận văn học: Thể loại văn học, đề tài, chủ đề, cốt truyện, không gian và thời gian nghệ thuật.
+            - Lý luận văn học: Thể loại văn học, đề tài, chủ đề, cốt truyện, không gian và thởi gian nghệ thuật.
             - Tiếng Việt: Từ ghép, từ láy; các biện pháp tu từ (ẩn dụ, hoán dụ, điệp từ); dấu câu.
             - Làm văn: Văn tự sự, văn miêu tả, văn biểu cảm, văn thuyết minh, văn nghị luận.
 
@@ -1094,9 +1094,14 @@ def kids():
             # Nếu user chọn bài toán từ danh sách sau OCR
             direct_question = request.form.get("direct_question")
             if direct_question and session.get("attached_file") and session.get("extraction_status") == "completed":
-                # Trích xuất nội dung bài toán cụ thể
+                # Tách số hiệu problem ("Câu N" hoặc "Bài N") từ direct_question
+                match = re.match(r"((Câu|Bài)\s*\d+)", direct_question)
+                if match:
+                    problem_id = match.group(1)
+                else:
+                    problem_id = direct_question.strip().split(" ")[0]  # fallback
                 extracted_text = extract_text_from_image(session["attached_file"])
-                specific_problem = extract_specific_problem(extracted_text, direct_question)
+                specific_problem = extract_specific_problem(extracted_text, problem_id)
                 if specific_problem:
                     session["current_question"] = specific_problem
                     session["current_step"] = 0
