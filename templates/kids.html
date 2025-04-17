@@ -4,9 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Helper for Kids</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        html, body {
+            font-family: 'Quicksand', Arial, Helvetica, sans-serif;
+        }
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Quicksand', Arial, sans-serif;
             background-image: url("{{ url_for('static', filename='background.jpg') }}");
             background-size: cover;
             background-position: center;
@@ -20,6 +26,7 @@
         }
         .main-container {
             display: flex;
+            flex-wrap: wrap;
             gap: 20px;
             width: 90%;
             max-width: 1200px;
@@ -31,7 +38,8 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            flex: 60%;
+            flex: 1 1 60%;
+            min-width: 300px;
             max-height: 600px;
             overflow-y: auto;
         }
@@ -40,7 +48,8 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            flex: 20%;
+            flex: 1 1 20%;
+            min-width: 250px;
             max-height: 600px;
             overflow-y: auto;
         }
@@ -91,7 +100,7 @@
         }
         .input-container {
             display: flex;
-            align-items: flex-start;
+            flex-direction: column;
             gap: 10px;
             width: 100%;
         }
@@ -106,27 +115,49 @@
             min-height: 40px;
             max-height: 150px;
             overflow-y: auto;
-            font-family: Arial, sans-serif;
+            font-family: 'Quicksand', Arial, sans-serif;
         }
         .ask-btn, .upload-btn {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 0 15px !important;
             border: none;
             border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
             cursor: pointer;
             transition: background-color 0.3s;
             display: flex;
+            flex-direction: row;
+            justify-content: center;
             align-items: center;
             gap: 8px;
             white-space: nowrap;
+            height: 30px !important;
+            min-height: 30px !important;
+            max-height: 30px !important;
+            font-size: 16px;
+            line-height: 1 !important;
+            box-sizing: border-box;
         }
         .ask-btn:hover, .upload-btn:hover {
             background-color: #45a049;
         }
         .upload-btn {
             background-color: #FF9800;
+            position: relative;
+            overflow: hidden;
+        }
+        .upload-btn .file-input {
+            display: block;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+            z-index: 2;
         }
         .upload-btn:hover {
             background-color: #e68900;
@@ -247,7 +278,8 @@
             text-align: left;
         }
         .problem-item:hover, .recent-item:hover {
-            background-color: #e0e0e0;
+            background-color: #1976D2;
+            color: white;
         }
         .problem-list-container {
             font-style: italic;
@@ -305,6 +337,173 @@
             margin: 10px 0;
             border: 1px solid #ddd;
             border-radius: 5px;
+        }
+        
+        /* Media queries for responsive design */
+        @media (max-width: 992px) {
+            .main-container {
+                flex-direction: column;
+                padding-bottom: 70px; /* Space for fixed input section */
+            }
+            
+            .chat-column, .popular-column, .recent-column {
+                flex: 1 1 100%;
+                max-height: none;
+                min-height: 300px;
+            }
+            
+            .popular-column, .recent-column {
+                order: 1;
+            }
+            
+            .chat-column {
+                order: 0;
+            }
+            
+            .input-section {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background-color: rgba(255, 255, 255, 0.95);
+                box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+                z-index: 1000;
+                padding: 10px;
+            }
+            
+            .input-section form {
+                width: 100%;
+            }
+            
+            .input-section .input-container {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+            
+            .input-section textarea {
+                width: 100%;
+                min-height: 60px;
+            }
+            
+            .input-section .button-container {
+                display: flex;
+                width: 100%;
+                gap: 5px;
+            }
+            
+            .input-section .ask-btn,
+            .input-section .upload-btn {
+                width: 50%;
+                height: 30px;
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                padding: 5px;
+                font-size: 14px;
+                gap: 5px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                width: 95%;
+                margin: 10px auto;
+                padding-bottom: 85px; /* Increase bottom padding for input area */
+            }
+            
+            .chat-column, .popular-column, .recent-column {
+                padding: 15px;
+                min-height: 250px;
+            }
+            
+            .problem-list {
+                display: block;
+            }
+            
+            .problem-item {
+                margin-bottom: 10px;
+                padding: 10px;
+            }
+            
+            .action-button, .back-button, .explain-more-btn, .try-again-btn, .parent-tip-btn {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            /* Mobile-specific input section */
+            .input-container {
+                flex-wrap: nowrap;
+            }
+            
+            .input-section textarea {
+                width: 100%;
+            }
+            
+            /* Add a container for buttons */
+            .input-section form {
+                width: 100%;
+            }
+            
+            .input-section .input-container {
+                flex-direction: column;
+            }
+            
+            /* Add a container for buttons */
+            .input-section .button-container {
+                display: flex;
+                flex-direction: row;
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .main-container {
+                width: 100%;
+                margin: 0;
+                gap: 10px;
+            }
+            
+            .chat-column, .popular-column, .recent-column {
+                padding: 10px;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            
+            h2, h3 {
+                font-size: 18px;
+            }
+            
+            .content-section, .problem-statement, .hint-container {
+                padding: 10px;
+            }
+            
+            .new-problem-container {
+                padding: 8px;
+            }
+            
+            .file-upload-container {
+                padding: 5px;
+            }
+            
+            .button-container {
+                gap: 5px;
+            }
+            
+            .problem-list-container {
+                padding: 10px;
+            }
+            
+            .problem-item {
+                font-size: 14px;
+                padding: 8px;
+            }
+            
+            .parent-tip-btn, .api-usage-btn {
+                font-size: 12px;
+            }
         }
     </style>
 </head>
@@ -369,6 +568,7 @@
         <div class="popular-column">
             <h3>Những bài toán phổ biến lớp {{ session.get('grade', '4') }} 📚</h3>
             <div class="problem-list">
+<<<<<<< HEAD
                 {% if session.get('grade', '4') == '4' %}
                     <div class="problem-item" onclick="selectProblem('Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.')">
                         Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.
@@ -419,6 +619,124 @@
                     <div class="problem-item" onclick="selectProblem('Đặt tính rồi tính: 72 - 29')">
                         Đặt tính rồi tính: 72 - 29
                     </div>                
+=======
+                {% if session.get('subject', 'math') == 'math' %}
+                    {% if session.get('grade', '4') == '1' %}
+                        <!-- Bài toán lớp 1 -->
+                        <div class="problem-item" onclick="selectProblem('Tính: 5 + 3')">Tính: 5 + 3</div>
+                        <div class="problem-item" onclick="selectProblem('Tính: 9 - 4')">Tính: 9 - 4</div>
+                        <div class="problem-item" onclick="selectProblem('Lan có 6 quả táo, mẹ cho thêm 2 quả. Hỏi Lan có bao nhiêu quả táo?')">Lan có 6 quả táo, mẹ cho thêm 2 quả. Hỏi Lan có bao nhiêu quả táo?</div>
+                        <div class="problem-item" onclick="selectProblem('An có 7 cái kẹo, An cho bạn Mai 3 cái. Hỏi An còn lại bao nhiêu cái kẹo?')">An có 7 cái kẹo, An cho bạn Mai 3 cái. Hỏi An còn lại bao nhiêu cái kẹo?</div>
+                        <div class="problem-item" onclick="selectProblem('Vẽ 1 hình tam giác, 1 hình tròn và 1 hình vuông')">Vẽ 1 hình tam giác, 1 hình tròn và 1 hình vuông</div>
+                    {% elif session.get('grade', '4') == '2' %}
+                        <!-- Bài toán lớp 2 -->
+                        <div class="problem-item" onclick="selectProblem('Thực hiện phép tính: 52 + 18 - 33')">Thực hiện phép tính: 52 + 18 - 33</div>
+                        <div class="problem-item" onclick="selectProblem('Điền số thích hợp vào chỗ chấm: 9 + … - … = 15')">Điền số thích hợp vào chỗ chấm: 9 + … - … = 15</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm x biết: x - 29 = 12')">Tìm x biết: x - 29 = 12</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15')">Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt tính rồi tính: 72 - 29')">Đặt tính rồi tính: 72 - 29</div>
+                    {% elif session.get('grade', '4') == '3' %}
+                        <!-- Bài toán lớp 3 -->
+                        <div class="problem-item" onclick="selectProblem('Tính: 245 + 378')">Tính: 245 + 378</div>
+                        <div class="problem-item" onclick="selectProblem('Tính: 486 ÷ 2')">Tính: 486 ÷ 2</div>
+                        <div class="problem-item" onclick="selectProblem('Tính chu vi hình tam giác có 3 cạnh lần lượt là 5 cm, 7 cm và 8 cm.')">Tính chu vi hình tam giác có 3 cạnh lần lượt là 5 cm, 7 cm và 8 cm.</div>
+                        <div class="problem-item" onclick="selectProblem('Một cửa hàng có 120 quả táo, bán được 45 quả. Hỏi còn lại bao nhiêu quả?')">Một cửa hàng có 120 quả táo, bán được 45 quả. Hỏi còn lại bao nhiêu quả?</div>
+                        <div class="problem-item" onclick="selectProblem('Thực hiện phép tính: 7 × 8')">Thực hiện phép tính: 7 × 8</div>
+                    {% elif session.get('grade', '4') == '4' %}
+                        <!-- Bài toán lớp 4 -->
+                        <div class="problem-item" onclick="selectProblem('Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.')">Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.</div>
+                        <div class="problem-item" onclick="selectProblem('Cộng hai phân số 3/7 và 2/7.')">Cộng hai phân số 3/7 và 2/7.</div>
+                        <div class="problem-item" onclick="selectProblem('Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?')">Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?</div>
+                        <div class="problem-item" onclick="selectProblem('Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?')">Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?</div>
+                        <div class="problem-item" onclick="selectProblem('Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?')">Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?</div>
+                    {% elif session.get('grade', '4') == '5' %}
+                        <!-- Bài toán lớp 5 -->
+                        <div class="problem-item" onclick="selectProblem('Tính diện tích hình thang có đáy lớn 12 cm, đáy bé 8 cm, chiều cao 5 cm.')">Tính diện tích hình thang có đáy lớn 12 cm, đáy bé 8 cm, chiều cao 5 cm.</div>
+                        <div class="problem-item" onclick="selectProblem('Một bể nước có thể tích 120 lít, đã lấy ra 35 lít nước. Hỏi còn lại bao nhiêu lít nước?')">Một bể nước có thể tích 120 lít, đã lấy ra 35 lít nước. Hỏi còn lại bao nhiêu lít nước?</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm x biết: x × 7 = 56')">Tìm x biết: x × 7 = 56</div>
+                        <div class="problem-item" onclick="selectProblem('Một cửa hàng bán 15 kg gạo với giá 12.000 đồng/kg. Hỏi tổng số tiền bán được?')">Một cửa hàng bán 15 kg gạo với giá 12.000 đồng/kg. Hỏi tổng số tiền bán được?</div>
+                        <div class="problem-item" onclick="selectProblem('Một hình chữ nhật có chu vi 36 cm, chiều dài hơn chiều rộng 4 cm. Tính diện tích hình chữ nhật đó.')">Một hình chữ nhật có chu vi 36 cm, chiều dài hơn chiều rộng 4 cm. Tính diện tích hình chữ nhật đó.</div>
+                    {% elif session.get('grade', '4') == '6' %}
+                        <!-- Bài toán lớp 6 -->
+                        <div class="problem-item" onclick="selectProblem('Tính giá trị biểu thức: -15 + 7')">Tính giá trị biểu thức: -15 + 7</div>
+                        <div class="problem-item" onclick="selectProblem('Giải phương trình: 2x + 3 = 11')">Giải phương trình: 2x + 3 = 11</div>
+                        <div class="problem-item" onclick="selectProblem('Tính diện tích hình tam giác có đáy 8 cm và chiều cao 5 cm.')">Tính diện tích hình tam giác có đáy 8 cm và chiều cao 5 cm.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết dưới dạng số thập phân: 3/4')">Viết dưới dạng số thập phân: 3/4</div>
+                        <div class="problem-item" onclick="selectProblem('Bảng sau ghi điểm toán của 40 học sinh: Điểm 5: 4 học sinh, điểm 6: 8 học sinh, điểm 7: 10 học sinh, điểm 8: 12 học sinh, điểm 9: 6 học sinh. Tính điểm trung bình của 40 học sinh.')">Tính điểm trung bình của 40 học sinh.</div>
+                    {% elif session.get('grade', '4') == '7' %}
+                        <!-- Bài toán lớp 7 -->
+                        <div class="problem-item" onclick="selectProblem('Tính giá trị biểu thức: 3/4 + 5/6 - 1/3.')">Tính giá trị biểu thức: 3/4 + 5/6 - 1/3.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm x trong tỉ lệ thức: 2/3 = x/9.')">Tìm x trong tỉ lệ thức: 2/3 = x/9.</div>
+                        <div class="problem-item" onclick="selectProblem('Rút gọn: (2x^2 - 3x + 5) + (x^2 + 4x - 1).')">Rút gọn: (2x^2 - 3x + 5) + (x^2 + 4x - 1).</div>
+                        <div class="problem-item" onclick="selectProblem('Cho tam giác ABC có góc A = 50°, góc B = 60°. Tính góc C.')">Cho tam giác ABC có góc A = 50°, góc B = 60°. Tính góc C.</div>
+                        <div class="problem-item" onclick="selectProblem('Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.')">Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.</div>
+                    {% else %}
+                        <!-- Mặc định hiển thị bài toán lớp 4 nếu không có lớp được chọn -->
+                        <div class="problem-item" onclick="selectProblem('Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.')">Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.</div>
+                        <div class="problem-item" onclick="selectProblem('Cộng hai phân số 3/7 và 2/7.')">Cộng hai phân số 3/7 và 2/7.</div>
+                        <div class="problem-item" onclick="selectProblem('Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?')">Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?</div>
+                        <div class="problem-item" onclick="selectProblem('Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?')">Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?</div>
+                        <div class="problem-item" onclick="selectProblem('Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?')">Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?</div>
+                    {% endif %}
+                {% else %}
+                    {% if session.get('grade', '4') == '1' %}
+                        <!-- Tiếng Việt lớp 1 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc to đoạn văn sau: “Bé Na đi học về, vui vẻ kể chuyện cho mẹ nghe.”')">Đọc to đoạn văn sau: “Bé Na đi học về, vui vẻ kể chuyện cho mẹ nghe.”</div>
+                        <div class="problem-item" onclick="selectProblem('Điền chữ cái còn thiếu: _ả, _ải, _ay, _an, _ang.')">Điền chữ cái còn thiếu: _ả, _ải, _ay, _an, _ang.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm các từ có vần “an”.')">Tìm các từ có vần “an”.</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt câu với từ “bạn”.')">Đặt câu với từ “bạn”.</div>
+                        <div class="problem-item" onclick="selectProblem('Khoanh tròn vào tiếng có âm “ch”: chim, cá, chó, mèo.')">Khoanh tròn vào tiếng có âm “ch”: chim, cá, chó, mèo.</div>
+                    {% elif session.get('grade', '4') == '2' %}
+                        <!-- Tiếng Việt lớp 2 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc đoạn văn và trả lời: “Nam thích giúp đỡ bạn bè. Em hãy kể một việc làm tốt của Nam.”')">Đọc đoạn văn và trả lời: “Nam thích giúp đỡ bạn bè. Em hãy kể một việc làm tốt của Nam.”</div>
+                        <div class="problem-item" onclick="selectProblem('Điền vào chỗ trống: “Con ... đang bay trên bầu trời.”')">Điền vào chỗ trống: “Con ... đang bay trên bầu trời.”</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm từ trái nghĩa với “cao”.')">Tìm từ trái nghĩa với “cao”.</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt câu hỏi cho câu: “Lan đang học bài.”')">Đặt câu hỏi cho câu: “Lan đang học bài.”</div>
+                        <div class="problem-item" onclick="selectProblem('Gạch chân dưới các từ chỉ hoạt động trong câu: “Bé chạy nhảy ngoài sân.”')">Gạch chân dưới các từ chỉ hoạt động trong câu: “Bé chạy nhảy ngoài sân.”</div>
+                    {% elif session.get('grade', '4') == '3' %}
+                        <!-- Tiếng Việt lớp 3 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc đoạn văn và trả lời câu hỏi: “Vì sao bạn nhỏ thích mùa hè?”')">Đọc đoạn văn và trả lời câu hỏi: “Vì sao bạn nhỏ thích mùa hè?”</div>
+                        <div class="problem-item" onclick="selectProblem('Điền dấu chấm, dấu phẩy vào chỗ thích hợp.')">Điền dấu chấm, dấu phẩy vào chỗ thích hợp.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm từ đồng nghĩa với “vui vẻ”.')">Tìm từ đồng nghĩa với “vui vẻ”.</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt câu với từ “học tập”.')">Đặt câu với từ “học tập”.</div>
+                        <div class="problem-item" onclick="selectProblem('Phân biệt cách dùng “và” và “nhưng” trong câu.')">Phân biệt cách dùng “và” và “nhưng” trong câu.</div>
+                    {% elif session.get('grade', '4') == '4' %}
+                        <!-- Tiếng Việt lớp 4 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc thầm đoạn văn và cho biết ý chính.')">Đọc thầm đoạn văn và cho biết ý chính.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm các từ ghép chỉ màu sắc.')">Tìm các từ ghép chỉ màu sắc.</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt 2 câu có sử dụng dấu hai chấm.')">Đặt 2 câu có sử dụng dấu hai chấm.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn ngắn tả một người bạn.')">Viết đoạn văn ngắn tả một người bạn.</div>
+                        <div class="problem-item" onclick="selectProblem('Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”')">Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”</div>
+                    {% elif session.get('grade', '4') == '5' %}
+                        <!-- Tiếng Việt lớp 5 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc hiểu đoạn thơ và trả lời câu hỏi.')">Đọc hiểu đoạn thơ và trả lời câu hỏi.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm 3 từ láy miêu tả tiếng cười.')">Tìm 3 từ láy miêu tả tiếng cười.</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt câu ghép có sử dụng liên từ “vì... nên”.')">Đặt câu ghép có sử dụng liên từ “vì... nên”.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn kể về một kỷ niệm đáng nhớ.')">Viết đoạn văn kể về một kỷ niệm đáng nhớ.</div>
+                        <div class="problem-item" onclick="selectProblem('Phân tích cấu tạo của câu: “Bầu trời hôm nay thật đẹp.”')">Phân tích cấu tạo của câu: “Bầu trời hôm nay thật đẹp.”</div>
+                    {% elif session.get('grade', '4') == '6' %}
+                        <!-- Văn lớp 6 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc hiểu đoạn thơ “Qua Đèo Ngang” và nêu nội dung chính.')">Đọc hiểu đoạn thơ “Qua Đèo Ngang” và nêu nội dung chính.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm 2 biện pháp tu từ trong đoạn thơ sau và giải thích tác dụng.')">Tìm 2 biện pháp tu từ trong đoạn thơ sau và giải thích tác dụng.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn cảm nhận về nhân vật Dế Mèn trong “Dế Mèn phiêu lưu ký”.')">Viết đoạn văn cảm nhận về nhân vật Dế Mèn trong “Dế Mèn phiêu lưu ký”.</div>
+                        <div class="problem-item" onclick="selectProblem('Phân tích ý nghĩa nhan đề “Bức tranh của em gái tôi”.')">Phân tích ý nghĩa nhan đề “Bức tranh của em gái tôi”.</div>
+                        <div class="problem-item" onclick="selectProblem('Tóm tắt truyện ngắn “Sơn Tinh, Thủy Tinh” bằng 5 câu.')">Tóm tắt truyện ngắn “Sơn Tinh, Thủy Tinh” bằng 5 câu.</div>
+                    {% elif session.get('grade', '4') == '7' %}
+                        <!-- Văn lớp 7 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc hiểu đoạn trích “Sống chết mặc bay” và trả lời câu hỏi.')">Đọc hiểu đoạn trích “Sống chết mặc bay” và trả lời câu hỏi.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm 3 phép tu từ trong đoạn văn và nêu tác dụng.')">Tìm 3 phép tu từ trong đoạn văn và nêu tác dụng.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn nghị luận về tình bạn.')">Viết đoạn văn nghị luận về tình bạn.</div>
+                        <div class="problem-item" onclick="selectProblem('Phân tích hình ảnh người mẹ trong bài thơ “Tiếng gà trưa”.')">Phân tích hình ảnh người mẹ trong bài thơ “Tiếng gà trưa”.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn kể về một trải nghiệm đáng nhớ ở trường.')">Viết đoạn văn kể về một trải nghiệm đáng nhớ ở trường.</div>
+                    {% else %}
+                        <!-- Mặc định hiển thị bài Tiếng Việt lớp 4 nếu không có lớp được chọn -->
+                        <div class="problem-item" onclick="selectProblem('Đọc thầm đoạn văn và cho biết ý chính.')">Đọc thầm đoạn văn và cho biết ý chính.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm các từ ghép chỉ màu sắc.')">Tìm các từ ghép chỉ màu sắc.</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt 2 câu có sử dụng dấu hai chấm.')">Đặt 2 câu có sử dụng dấu hai chấm.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn ngắn tả một người bạn.')">Viết đoạn văn ngắn tả một người bạn.</div>
+                        <div class="problem-item" onclick="selectProblem('Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”')">Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”</div>
+                    {% endif %}
+>>>>>>> b3f39e2 (feat: allow mobile users to capture and upload photos directly via camera input (accept/capture attributes))
                 {% endif %}
             </div>
         </div>
@@ -445,13 +763,15 @@
         <form method="POST" id="main-form" enctype="multipart/form-data">
             <div class="input-container">
                 <textarea name="question" id="question-input" placeholder="Nhập câu hỏi (ví dụ: Câu 4)"></textarea>
-                <button type="submit" name="action" value="ask" class="ask-btn">
-                    <span>❓</span> Hỏi
-                </button>
-                <label class="upload-btn">
-                    <span>📎</span> Đính kèm ảnh
-                    <input type="file" name="file" id="file-input" class="file-input" accept="image/png,image/jpeg,image/jpg">
-                </label>
+                <div class="button-container">
+                    <button type="submit" name="action" value="ask" class="ask-btn">
+                        <span>❓</span> Hỏi
+                    </button>
+                    <label class="upload-btn">
+                        <span>📎</span> Đính kèm ảnh / Chụp ảnh
+                        <input type="file" name="file" id="file-input" class="file-input" accept="image/png,image/jpeg,image/jpg,image/*" capture="environment">
+                    </label>
+                </div>
             </div>
         </form>
     </div>
@@ -466,6 +786,232 @@
     </div>
 
     <script>
+<<<<<<< HEAD
+=======
+        // Add a flag to prevent duplicate requests
+        let isProcessingRequest = false;
+        // Track extraction related errors
+        let extractionErrorCount = 0;
+        // Flag to differentiate between extraction and regular math problems
+        let isExtractionMode = false;
+        let pendingHintFetch = false;
+
+        function makeProblemsClickable() {
+            console.log("Making problem list items clickable...");
+            const hintElements = document.querySelectorAll('.hint-text');
+            hintElements.forEach(element => {
+                let text = element.innerHTML;
+                if (text.includes("Tớ thấy các bài toán:")) {
+                    console.log("Found problem list in hint text, processing...");
+                    const regex = /(Tớ thấy các bài toán:)(.*?)(\. Bạn muốn hỏi về bài nào\?)/;
+                    const match = text.match(regex);
+                    if (match) {
+                        const problemsPart = match[2].trim();
+                        const problems = problemsPart.split(',').map(p => p.trim());
+                        let newHtml = match[1];
+                        problems.forEach((problem, index) => {
+                            newHtml += ` <span class="problem-link" onclick="selectProblemFromList('${problem}')" style="color: #1E88E5; text-decoration: underline; cursor: pointer;">${problem}</span>`;
+                            if (index < problems.length - 1) newHtml += ',';
+                        });
+                        newHtml += match[3];
+                        element.innerHTML = newHtml;
+                        console.log("Updated hint text with clickable problems");
+                    }
+                }
+            });
+
+            const problemListContainers = document.querySelectorAll('.problem-list-container');
+            problemListContainers.forEach(container => {
+                let text = container.innerHTML;
+                if (text.includes("Tớ thấy các bài toán:")) {
+                    console.log("Found problem list in container, processing...");
+                    const regex = /(Tớ thấy các bài toán:)(.*?)(\. Bạn muốn hỏi về bài nào\?)/;
+                    const match = text.match(regex);
+                    if (match) {
+                        const problemsPart = match[2].trim();
+                        const problems = problemsPart.split(',').map(p => p.trim());
+                        let newHtml = match[1];
+                        problems.forEach((problem, index) => {
+                            newHtml += ` <span class="problem-link" onclick="selectProblemFromList('${problem}')" style="color: #1E88E5; text-decoration: underline; cursor: pointer;">${problem}</span>`;
+                            if (index < problems.length - 1) newHtml += ',';
+                        });
+                        newHtml += match[3];
+                        container.innerHTML = newHtml;
+                        console.log("Updated problem list container with clickable problems");
+                    }
+                }
+            });
+        }
+
+        function submitForm(action, additionalData = {}) {
+            if (isProcessingRequest) {
+                console.log("Request already in progress, ignoring...");
+                return false;
+            }
+            
+            isProcessingRequest = true;
+            console.log(`Submitting form with action=${action}`);
+            
+            // Set extraction mode flag
+            isExtractionMode = (action === 'extract_content' || action === 'check_extraction');
+            
+            // Show loading state in content section
+            const contentSection = document.querySelector('.content-section');
+            if (contentSection) {
+                contentSection.innerHTML = `
+                    <div class="loading-container">
+                        <div class="loading-bar"></div>
+                        <p class="loading-text">Đang xử lý yêu cầu...</p>
+                    </div>
+                `;
+            }
+            
+            const form = document.getElementById('main-form');
+            
+            // Clear any previous action inputs
+            form.querySelectorAll('input[type="hidden"]').forEach(el => {
+                if (el.name === 'action' || el.name === 'clear_file' || 
+                    el.name === 'direct_question' || el.name === 'skip_image_processing') {
+                    el.remove();
+                }
+            });
+            
+            // Add the action input
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'action';
+            hiddenInput.value = action;
+            form.appendChild(hiddenInput);
+            
+            // Add skip_image_processing flag to prevent reprocessing images
+            const skipProcessingInput = document.createElement('input');
+            skipProcessingInput.type = 'hidden';
+            skipProcessingInput.name = 'skip_image_processing';
+            skipProcessingInput.value = 'true';
+            form.appendChild(skipProcessingInput);
+            
+            // Add any additional data
+            for (const [key, value] of Object.entries(additionalData)) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value;
+                form.appendChild(input);
+            }
+            
+            // Set flag to fetch hints if this is an ask action
+            if (action === 'ask') {
+                pendingHintFetch = true;
+            }
+            
+            // Use the form's action URL, not the form itself
+            const formAction = form.getAttribute('action') || '/kids';
+            
+            // Create a timeout for long-running requests
+            let requestTimeout = setTimeout(() => {
+                if (isProcessingRequest && !isExtractionMode) {
+                    // Only show timeout error for non-extraction requests
+                    console.error("Request timed out");
+                    showError("Yêu cầu đã quá thởi gian chờ. Có thể có vấn đề với server hoặc kết nối mạng.");
+                }
+            }, 30000); // 30 seconds timeout
+            
+            // Use fetch instead of form submission to have more control
+            const formData = new FormData(form);
+            
+            fetch(formAction, {
+                method: 'POST',
+                body: formData,
+                cache: 'no-store'
+            })
+            .then(response => {
+                clearTimeout(requestTimeout);
+                if (!response.ok) {
+                    throw new Error('Server responded with status: ' + response.status);
+                }
+                return response.text();
+            })
+            .then(html => {
+                console.log("Form submitted successfully");
+                
+                // Don't process HTML response for extraction-related actions
+                if (isExtractionMode) {
+                    console.log("Skipping HTML processing for extraction action");
+                    if (action !== 'check_extraction') {
+                        isProcessingRequest = false;
+                    }
+                    return;
+                }
+                
+                // First check if there are extracted problems to display
+                if (action === 'attach_complete' && handleExtractedProblems(html)) {
+                    console.log("Displayed extracted problems, skipping further processing");
+                    return;
+                }
+                
+                // Create a temporary container to parse the HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // Find the content section in the response
+                const newContentSection = tempDiv.querySelector('.content-section');
+                const newChatColumn = tempDiv.querySelector('.chat-column');
+                
+                // Check for loading state in the response
+                const isStillLoading = tempDiv.querySelector('#app-config')?.getAttribute('data-loading') === 'true';
+                console.log("Server side loading state:", isStillLoading);
+                
+                if (!isStillLoading && newContentSection && contentSection) {
+                    // Update content section
+                    contentSection.innerHTML = newContentSection.innerHTML;
+                }
+                
+                if (!isStillLoading && newChatColumn) {
+                    const chatColumn = document.querySelector('.chat-column');
+                    if (chatColumn) {
+                        // Update chat column
+                        chatColumn.innerHTML = newChatColumn.innerHTML;
+                        // Scroll to bottom
+                        chatColumn.scrollTop = chatColumn.scrollHeight;
+                    }
+                }
+                
+                // Always clear the processing state if we're not still loading
+                if (!isStillLoading) {
+                    isProcessingRequest = false;
+                }
+                
+                // If this was an ask action, fetch hints immediately
+                if (pendingHintFetch) {
+                    pendingHintFetch = false;
+                    console.log("Question submitted, now fetching hints...");
+                    setTimeout(() => fetchHints(), 100);
+                }
+                
+                // If we're still loading but the action was attach_complete, try again after a delay
+                if (isStillLoading && action === 'attach_complete') {
+                    console.log("Still loading, retrying after 3 seconds...");
+                    setTimeout(() => {
+                        // Try to directly parse whatever we can from the current response
+                        if (handleExtractedProblems(html)) {
+                            console.log("Found problems on retry, displaying them");
+                            return;
+                        }
+                        console.log("Retrying attach_complete...");
+                        submitForm('attach_complete');
+                    }, 3000);
+                }
+            })
+            .catch(error => {
+                clearTimeout(requestTimeout);
+                console.error('Error submitting form:', error);
+                showError(`Có lỗi xảy ra khi xử lý yêu cầu: ${error.message}`);
+            });
+            
+            return false; // Prevent traditional form submission
+        }
+
+>>>>>>> b3f39e2 (feat: allow mobile users to capture and upload photos directly via camera input (accept/capture attributes))
         function selectProblem(problem) {
             try {
                 console.log("Selecting problem:", problem);

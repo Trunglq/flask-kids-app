@@ -4,16 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to AI for Kids</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
+        html, body {
+            font-family: 'Quicksand', Arial, Helvetica, sans-serif;
+        }
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         body {
-            font-family: 'Poppins', sans-serif;
             background-image: url("{{ url_for('static', filename='background.jpg') }}");
             background-size: cover;
             background-position: center;
@@ -38,21 +43,21 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 50px;
+            padding: 1.25rem 5%;
             background-color: #1A263F;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         header h1 {
             color: #FFFFFF;
-            font-size: 24px;
+            font-size: 1.5rem;
             font-weight: 600;
         }
         header a {
             text-decoration: none;
         }
         header button {
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 0.625rem 1.25rem;
+            font-size: 1rem;
             border: none;
             border-radius: 5px;
             background-color: #1E88E5;
@@ -66,45 +71,47 @@
         }
         .hero {
             text-align: center;
-            padding: 50px 20px;
+            padding: 3rem 1.25rem;
             background-color: #2E3A59;
-            margin: 20px 50px;
+            margin: 1.25rem 5%;
             border-radius: 10px;
         }
         .hero h2 {
-            font-size: 48px;
+            font-size: 2.5rem;
             color: #FFFFFF;
-            margin-bottom: 20px;
+            margin-bottom: 1.25rem;
         }
         .hero p {
-            font-size: 18px;
+            font-size: 1.125rem;
             color: #D1D5DB;
-            margin-bottom: 20px;
+            margin-bottom: 1.25rem;
         }
         .hero .social-proof {
-            font-size: 16px;
+            font-size: 1rem;
             color: #60A5FA;
-            margin-bottom: 20px;
+            margin-bottom: 1.25rem;
             font-weight: 600;
         }
         .hero .video-placeholder {
             width: 100%;
             max-width: 600px;
-            height: 300px;
+            height: auto;
+            min-height: 200px;
             background-color: #E3F2FD;
-            margin: 20px auto;
+            margin: 1.25rem auto;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 1.125rem;
             color: #666;
             position: relative;
+            padding: 1rem;
         }
         .hero .video-placeholder a {
             position: absolute;
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 0.625rem 1.25rem;
+            font-size: 1rem;
             border: none;
             border-radius: 5px;
             background-color: #1E88E5;
@@ -116,8 +123,8 @@
             background-color: #1565C0;
         }
         .hero button {
-            padding: 15px 30px;
-            font-size: 18px;
+            padding: 0.9375rem 1.875rem;
+            font-size: 1.125rem;
             border: none;
             border-radius: 5px;
             background-color: #4CAF50;
@@ -131,30 +138,32 @@
         }
         .try-demo {
             text-align: center;
-            padding: 50px 20px;
+            padding: 3rem 1.25rem;
             background-color: #FFF8E1;
         }
         .try-demo h3 {
-            font-size: 36px;
+            font-size: 2.25rem;
             color: #1E88E5;
-            margin-bottom: 20px;
+            margin-bottom: 1.25rem;
         }
         .try-demo form {
             display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.625rem;
+            margin-bottom: 1.25rem;
         }
         .try-demo input[type="text"] {
-            padding: 10px;
-            width: 300px;
-            font-size: 16px;
+            padding: 0.625rem;
+            width: 100%;
+            max-width: 300px;
+            font-size: 1rem;
             border: 2px solid #1E88E5;
             border-radius: 5px;
         }
         .try-demo button {
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 0.625rem 1.25rem;
+            font-size: 1rem;
             border: none;
             border-radius: 5px;
             background-color: #1E88E5;
@@ -168,35 +177,37 @@
         }
         .try-demo .hint-box {
             background-color: #E3F2FD;
-            padding: 15px;
+            padding: 0.9375rem;
             border-radius: 5px;
             margin: 0 auto;
             max-width: 600px;
-            font-size: 16px;
+            width: 100%;
+            font-size: 1rem;
             color: #333;
         }
         .features {
-            padding: 50px 20px;
+            padding: 3rem 1.25rem;
             background-color: #FFF8E1;
         }
         .features h3 {
-            font-size: 36px;
+            font-size: 2.25rem;
             color: #1E88E5;
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 2.5rem;
         }
         .feature-grid {
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: 1.875rem;
             flex-wrap: wrap;
         }
         .feature-card {
             background-color: white;
-            padding: 20px;
+            padding: 1.25rem;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
+            width: 100%;
+            max-width: 300px;
             text-align: center;
             transition: transform 0.3s, box-shadow 0.3s;
         }
@@ -205,23 +216,23 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         .feature-card i {
-            font-size: 48px;
+            font-size: 3rem;
             color: #1E88E5;
-            margin-bottom: 10px;
+            margin-bottom: 0.625rem;
         }
         .feature-card h4 {
-            font-size: 24px;
+            font-size: 1.5rem;
             color: #1E88E5;
-            margin-bottom: 10px;
+            margin-bottom: 0.625rem;
         }
         .feature-card p {
-            font-size: 16px;
+            font-size: 1rem;
             color: #666;
-            margin-bottom: 20px;
+            margin-bottom: 1.25rem;
         }
         .feature-card button {
-            padding: 10px 20px;
-            font-size: 14px;
+            padding: 0.625rem 1.25rem;
+            font-size: 0.875rem;
             border: none;
             border-radius: 5px;
             background-color: #1E88E5;
@@ -238,14 +249,14 @@
             cursor: not-allowed;
         }
         .testimonials {
-            padding: 50px 20px;
+            padding: 3rem 1.25rem;
             background-color: white;
             text-align: center;
         }
         .testimonials h3 {
-            font-size: 36px;
+            font-size: 2.25rem;
             color: #1E88E5;
-            margin-bottom: 20px;
+            margin-bottom: 1.25rem;
         }
         .testimonial-slider {
             position: relative;
@@ -260,101 +271,116 @@
         .testimonial-slide {
             display: flex;
             justify-content: center;
-            gap: 30px;
+            flex-wrap: wrap;
+            gap: 1.875rem;
             flex-shrink: 0;
             width: 100%;
         }
         .testimonial {
             background-color: #E3F2FD;
-            padding: 20px;
+            padding: 1.25rem;
             border-radius: 10px;
-            width: 300px;
+            width: 100%;
+            max-width: 300px;
             text-align: center;
+            margin-bottom: 1.25rem;
         }
         .testimonial img {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            margin-bottom: 10px;
+            margin-bottom: 0.625rem;
             object-fit: cover;
         }
         .testimonial p {
-            font-size: 16px;
-            color: #333;
-            font-style: italic;
-        }
-        .testimonial span {
-            display: block;
-            margin-top: 10px;
-            font-size: 14px;
+            font-size: 1rem;
             color: #666;
+            margin-bottom: 0.625rem;
+        }
+        .testimonial h4 {
+            font-size: 1.125rem;
+            color: #1E88E5;
+            margin-bottom: 0.3125rem;
+        }
+        .testimonial .role {
+            font-size: 0.875rem;
+            color: #999;
         }
         .slider-controls {
-            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            margin-top: 1.25rem;
+            gap: 0.625rem;
         }
-        .slider-controls button {
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
+        .slider-control {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             background-color: #1E88E5;
             color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            margin: 0 10px;
             transition: background-color 0.3s;
+            border: none;
         }
-        .slider-controls button:hover {
+        .slider-control:hover {
             background-color: #1565C0;
         }
-        .slider-controls button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
         .community-section {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 50px 20px;
-            flex-wrap: wrap;
-        }
-        .community-section .newsletter, .community-section .cta {
-            flex: 1;
-            min-width: 300px;
-            padding: 30px;
-            border-radius: 10px;
+            padding: 3rem 1.25rem;
+            background-color: #E3F2FD;
             text-align: center;
         }
-        .community-section .newsletter {
-            background-color: #FFF8E1;
-        }
-        .community-section .cta {
-            background-color: #E3F2FD;
-        }
         .community-section h3 {
-            font-size: 24px;
+            font-size: 2.25rem;
             color: #1E88E5;
-            margin-bottom: 20px;
+            margin-bottom: 1.25rem;
         }
         .community-section p {
-            font-size: 16px;
+            font-size: 1.125rem;
             color: #666;
-            margin-bottom: 20px;
+            margin-bottom: 1.875rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
-        .community-section form {
+        .newsletter {
+            background-color: white;
+            padding: 1.875rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .newsletter h3 {
+            font-size: 1.5rem;
+            color: #1E88E5;
+            margin-bottom: 0.625rem;
+        }
+        .newsletter p {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 1.25rem;
+        }
+        .newsletter form {
             display: flex;
-            justify-content: center;
-            gap: 10px;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.625rem;
         }
         .community-section input[type="email"] {
-            padding: 10px;
-            width: 250px;
-            font-size: 16px;
+            padding: 0.625rem;
+            width: 100%;
+            max-width: 250px;
+            font-size: 1rem;
             border: 2px solid #1E88E5;
             border-radius: 5px;
         }
         .community-section button {
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 0.625rem 1.25rem;
+            font-size: 1rem;
             border: none;
             border-radius: 5px;
             background-color: #1E88E5;
@@ -366,16 +392,79 @@
             background-color: #1565C0;
             transform: scale(1.05);
         }
-        .community-section button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
+        
+        /* Media Queries for Responsive Design */
+        @media (min-width: 768px) {
+            .try-demo form {
+                flex-direction: row;
+                justify-content: center;
+            }
+            
+            .newsletter form {
+                flex-direction: row;
+                justify-content: center;
+            }
         }
-        footer {
-            padding: 20px;
-            background-color: rgba(255, 255, 255, 0.9);
-            text-align: center;
-            font-size: 14px;
-            color: #666;
+        
+        @media (max-width: 767px) {
+            .hero h2 {
+                font-size: 2rem;
+            }
+            
+            .features h3, .testimonials h3, .community-section h3, .try-demo h3 {
+                font-size: 1.75rem;
+            }
+            
+            .hero .video-placeholder {
+                min-height: 150px;
+            }
+            
+            .testimonial-slide {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .testimonial {
+                max-width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .hero {
+                margin: 1rem;
+                padding: 1.5rem 1rem;
+            }
+            
+            .hero h2 {
+                font-size: 1.5rem;
+            }
+            
+            .hero p, .community-section p {
+                font-size: 1rem;
+            }
+            
+            .features h3, .testimonials h3, .community-section h3, .try-demo h3 {
+                font-size: 1.5rem;
+            }
+            
+            .feature-card {
+                padding: 1rem;
+            }
+            
+            .feature-card h4 {
+                font-size: 1.25rem;
+            }
+            
+            .hero button, .try-demo button, .community-section button {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
@@ -386,144 +475,108 @@
             <button>Login</button>
         </a>
     </header>
-
     <section class="hero">
-        <h2>Welcome to AI for Kids!</h2>
-        <p>Help your child learn math with AI-powered hints!</p>
-        <div class="social-proof">Trusted by 10,000+ parents worldwide</div>
+        <h2>Học toán trở nên thú vị!</h2>
+        <p>AI For Kids sử dụng trí tuệ nhân tạo để giúp trẻ em học toán hiệu quả hơn với những gợi ý từng bước dễ hiểu.</p>
+        <div class="social-proof">Hơn 10,000 học sinh đã sử dụng và yêu thích!</div>
         <div class="video-placeholder">
-            <p>Watch Our Demo</p>
-            <a href="https://www.youtube.com/watch?v=P66vXGBtaLw&t=3220s" target="_blank">Play Video</a>
+            <span>Video giới thiệu cách sử dụng ứng dụng</span>
+            <a href="#try-demo">Xem demo ngay!</a>
         </div>
-        <form method="POST" action="{{ url_for('login') }}">
-            <button type="submit">Get Started</button>
-        </form>
+        <a href="{{ url_for('login') }}">
+            <button>Bắt đầu ngay!</button>
+        </a>
     </section>
-
-    <section class="try-demo">
-        <h3>Try It Now!</h3>
-        <form method="POST">
-            <input type="text" name="demo_question" placeholder="Enter a math problem, e.g., 27 + 10">
-            <button type="submit">Get Hint</button>
+    <section class="try-demo" id="try-demo">
+        <h3>Hãy thử ngay!</h3>
+        <form method="POST" action="{{ url_for('welcome') }}">
+            <input type="text" name="demo_question" placeholder="Nhập bài toán của bạn..." required>
+            <button type="submit">Nhận gợi ý</button>
         </form>
-        <div class="hint-box">{{ demo_hint }}</div>
+        <div class="hint-box">
+            <p>{{ demo_hint }}</p>
+        </div>
     </section>
-
     <section class="features">
-        <h3>Explore AI for Kids</h3>
+        <h3>Tính năng nổi bật</h3>
         <div class="feature-grid">
             <div class="feature-card">
                 <i class="fas fa-robot"></i>
-                <h4>AI-Powered Learning</h4>
-                <p>Our AI provides step-by-step hints to help kids solve math problems independently.</p>
-                <form method="POST" action="{{ url_for('login') }}">
-                    <button type="submit">Try Now</button>
-                </form>
+                <h4>Trí tuệ nhân tạo</h4>
+                <p>Sử dụng AI hiện đại để phân tích các bài toán và đưa ra gợi ý phù hợp với từng cấp độ.</p>
+                <button disabled>Sắp ra mắt</button>
             </div>
             <div class="feature-card">
-                <i class="fas fa-gamepad"></i>
-                <h4>Game for Kids</h4>
-                <p>Reward your child with fun, simple games after learning sessions!</p>
-                <button disabled>Coming Soon</button>
+                <i class="fas fa-graduation-cap"></i>
+                <h4>Phương pháp giàn giáo</h4>
+                <p>Hỗ trợ học tập dần dần, giúp trẻ tự tin giải quyết vấn đề một cách tự lực.</p>
+                <button disabled>Sắp ra mắt</button>
             </div>
             <div class="feature-card">
-                <i class="fas fa-newspaper"></i>
-                <h4>Education News</h4>
-                <p>Stay updated with the latest tips and news on children’s education.</p>
-                <button disabled>Learn More</button>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-trophy"></i>
-                <h4>Earn Rewards & Badges</h4>
-                <p>Kids earn badges for solving math problems, making learning fun!</p>
-                <button disabled>Learn More</button>
+                <i class="fas fa-camera"></i>
+                <h4>Quét bài toán từ ảnh</h4>
+                <p>Chỉ cần chụp ảnh bài tập, hệ thống sẽ tự động nhận diện và phân tích.</p>
+                <button disabled>Sắp ra mắt</button>
             </div>
         </div>
     </section>
-
     <section class="testimonials">
-        <h3>What Parents Say</h3>
+        <h3>Phản hồi từ cộng đồng</h3>
         <div class="testimonial-slider">
-            <div class="testimonial-slides" id="testimonialSlides">
-                <div class="testimonial-slide">
+            <div class="testimonial-slides">
+                <div class="testimonial-slide" id="slide-1">
                     <div class="testimonial">
-                        <img src="https://via.placeholder.com/50" alt="Parent Avatar">
-                        <p>"This app made math fun for my child!"</p>
-                        <span>– Sarah, a happy parent</span>
+                        <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Chị Hương">
+                        <p>"Con tôi đã tiến bộ rất nhiều trong việc học toán từ khi sử dụng ứng dụng này. Các gợi ý rất dễ hiểu và phù hợp với trình độ của cháu."</p>
+                        <h4>Chị Hương</h4>
+                        <div class="role">Phụ huynh học sinh lớp 3</div>
                     </div>
                     <div class="testimonial">
-                        <img src="https://via.placeholder.com/50" alt="Parent Avatar">
-                        <p>"The hints are amazing! My kid loves it."</p>
-                        <span>– John, a satisfied dad</span>
+                        <img src="https://randomuser.me/api/portraits/men/15.jpg" alt="Thầy Minh">
+                        <p>"Tôi thường giới thiệu AI for Kids cho học sinh của mình để giúp các em luyện tập ở nhà. Đây là công cụ hỗ trợ tuyệt vời cho giáo viên và học sinh."</p>
+                        <h4>Thầy Minh</h4>
+                        <div class="role">Giáo viên Toán tiểu học</div>
                     </div>
                     <div class="testimonial">
-                        <img src="https://via.placeholder.com/50" alt="Parent Avatar">
-                        <p>"A great tool for learning math."</p>
-                        <span>– Emily, a mom of two</span>
+                        <img src="https://randomuser.me/api/portraits/women/22.jpg" alt="Bé Mai">
+                        <p>"Tớ thích AI for Kids lắm! Trước đây tớ sợ môn Toán lắm, nhưng giờ có gợi ý của AI, tớ thấy làm bài tập vui hơn nhiều."</p>
+                        <h4>Bé Mai</h4>
+                        <div class="role">Học sinh lớp 4</div>
                     </div>
                 </div>
-                <div class="testimonial-slide">
-                    <div class="testimonial">
-                        <img src="https://via.placeholder.com/50" alt="Parent Avatar">
-                        <p>"My child’s confidence in math has improved!"</p>
-                        <span>– Michael, a proud parent</span>
-                    </div>
-                    <div class="testimonial">
-                        <img src="https://via.placeholder.com/50" alt="Parent Avatar">
-                        <p>"Highly recommend this app for kids."</p>
-                        <span>– Lisa, a teacher and parent</span>
-                    </div>
-                    <div class="testimonial" style="visibility: hidden;">
-                        <!-- Placeholder to maintain layout -->
-                    </div>
-                </div>
-            </div>
-            <div class="slider-controls">
-                <button onclick="moveSlide(-1)" id="prevBtn">Previous</button>
-                <button onclick="moveSlide(1)" id="nextBtn">Next</button>
             </div>
         </div>
+        <div class="slider-controls">
+            <button class="slider-control" onclick="moveSlide(-1)"><i class="fas fa-chevron-left"></i></button>
+            <button class="slider-control" onclick="moveSlide(1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
     </section>
-
     <section class="community-section">
+        <h3>Cùng tham gia cộng đồng</h3>
+        <p>Tham gia cộng đồng của chúng tôi để nhận được những cập nhật mới nhất và trao đổi kinh nghiệm học tập cùng các gia đình khác.</p>
         <div class="newsletter">
             <h3>Stay Updated with Education News</h3>
-            <p>Subscribe to our newsletter for the latest tips and updates on children’s education.</p>
+            <p>Subscribe to our newsletter for the latest tips and updates on children's education.</p>
             <form>
-                <input type="email" placeholder="Enter your email" disabled>
-                <button disabled>Subscribe</button>
-            </form>
-        </div>
-        <div class="cta">
-            <h3>Join Thousands of Parents Using AI for Kids!</h3>
-            <form method="POST" action="{{ url_for('login') }}">
-                <button type="submit">Get Started</button>
+                <input type="email" placeholder="Your email address">
+                <button type="submit">Subscribe</button>
             </form>
         </div>
     </section>
-
-    <footer>
-        <p>© 2025 AI for Kids. All rights reserved.</p>
-    </footer>
-
     <script>
         let currentSlide = 0;
-        const slides = document.querySelectorAll('.testimonial-slide');
-        const totalSlides = slides.length;
-
+        const totalSlides = 1; // We have only one slide for now
+        
         function updateSlider() {
-            document.getElementById('testimonialSlides').style.transform = `translateX(-${currentSlide * 100}%)`;
-            document.getElementById('prevBtn').disabled = currentSlide === 0;
-            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+            const slides = document.querySelector('.testimonial-slides');
+            slides.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
-
+        
         function moveSlide(direction) {
-            currentSlide += direction;
-            if (currentSlide < 0) currentSlide = 0;
-            if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+            currentSlide = (currentSlide + direction + totalSlides) % totalSlides;
             updateSlider();
         }
-
+        
         updateSlider();
     </script>
 </body>
