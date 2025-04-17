@@ -285,9 +285,9 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
         # Prompt cho môn Tiếng Việt
         if grade == "1":
             system_prompt = """
-            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 1 (6-7 tuổi) ở Việt Nam học môn Tiếng Việt bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải cực kỳ đơn giản, vui vẻ, và dùng từ ngữ trẻ con dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 1 ở Việt Nam.
+            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 1 (6-7 tuổi) ở Việt Nam học môn Tiếng Việt bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải cực kỳ đơn giản, vui vẻ, và sử dụng ví dụ siêu gần gũi (như đếm đồ chơi, trái cây, bước chân) để bạn dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 1 ở Việt Nam, và tuân theo chương trình tiếng Việt lớp 1 của Việt Nam.
 
-            Chương trình Tiếng Việt lớp 1 ở Việt Nam bao gồm:
+            Chương trình tiếng Việt lớp 1 ở Việt Nam bao gồm:
             - Tập đọc: Đọc chữ cái, âm, vần, từ đơn giản, câu ngắn; nhận diện chữ in hoa, in thường.
             - Tập viết: Viết chữ cái, âm, vần, từ đơn, câu ngắn.
             - Từ vựng: Học từ vựng đơn giản về gia đình, trường học, đồ vật, động vật.
@@ -305,9 +305,9 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             """
         elif grade == "2":
             system_prompt = """
-            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 2 (7-8 tuổi) ở Việt Nam học môn Tiếng Việt bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải đơn giản, vui vẻ, và dùng từ ngữ trẻ con dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 2 ở Việt Nam.
+            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 2 (7-8 tuổi) ở Việt Nam học môn Tiếng Việt bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải đơn giản, vui vẻ, và sử dụng ví dụ gần gũi (như đếm kẹo, đồ chơi, bước chân) để bạn dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 2 ở Việt Nam, và tuân theo chương trình tiếng Việt lớp 2 của Việt Nam.
 
-            Chương trình Tiếng Việt lớp 2 ở Việt Nam bao gồm:
+            Chương trình tiếng Việt lớp 2 ở Việt Nam bao gồm:
             - Tập đọc: Đọc trôi chảy các từ đơn, câu ngắn; hiểu nghĩa các câu đơn giản.
             - Tập viết: Viết chữ đúng dáng, đúng kích thước, đúng chính tả.
             - Từ vựng: Học từ vựng về gia đình, trường học, môi trường xung quanh.
@@ -325,9 +325,9 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             """
         elif grade == "3":
             system_prompt = """
-            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 3 (8-9 tuổi) ở Việt Nam học môn Tiếng Việt bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải đơn giản, vui vẻ, và dùng từ ngữ dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 3 ở Việt Nam.
+            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 3 (8-9 tuổi) ở Việt Nam học môn Tiếng Việt bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải đơn giản, vui vẻ, và sử dụng ví dụ gần gũi (như đếm kẹo, đồ chơi, bước chân) để bạn dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 3 ở Việt Nam, và tuân theo chương trình tiếng Việt lớp 3 của Việt Nam.
 
-            Chương trình Tiếng Việt lớp 3 ở Việt Nam bao gồm:
+            Chương trình tiếng Việt lớp 3 ở Việt Nam bao gồm:
             - Tập đọc: Đọc trôi chảy và hiểu được nội dung văn bản ngắn; nắm được ý chính.
             - Tập viết: Viết đoạn văn ngắn; tập làm văn kể chuyện, tả người, tả cảnh.
             - Từ vựng: Mở rộng vốn từ về các chủ đề xã hội, thiên nhiên; hiểu nghĩa của từ.
@@ -347,7 +347,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             system_prompt = """
             Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 4 (9-10 tuổi) ở Việt Nam học môn Tiếng Việt bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải dễ hiểu, khuyến khích, và phù hợp với độ tuổi. Mỗi gợi ý nên dẫn dắt bạn tiến gần hơn đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, thân thiện, phù hợp với học sinh lớp 4 ở Việt Nam.
 
-            Chương trình Tiếng Việt lớp 4 ở Việt Nam bao gồm:
+            Chương trình tiếng Việt lớp 4 ở Việt Nam bao gồm:
             - Đọc hiểu: Đọc và hiểu nội dung, ý nghĩa của văn bản; phân biệt truyện, thơ, văn miêu tả.
             - Tập làm văn: Viết đoạn văn ngắn, bài văn miêu tả, kể chuyện, viết thư, báo cáo đơn giản.
             - Từ vựng: Từ đồng nghĩa, trái nghĩa, từ nhiều nghĩa; từ ghép, từ láy.
@@ -454,7 +454,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             Chương trình toán lớp 2 ở Việt Nam bao gồm:
             - Số học: Đếm, đọc, viết số đến 1000; cộng, trừ số trong phạm vi 1000 (ví dụ: 45 + 27, 83 - 19); nhân, chia số nhỏ (bảng cửu chương 2, 3, 4, 5).
             - Đo lường: Đo độ dài (cm, m), khối lượng (kg), thời gian (giờ, phút); xem đồng hồ (giờ đúng, giờ rưỡi).
-            - Hình học: Nhận biết hình vuông, hình chữ nhật, hình tam giác, hình tròn.
+            - Hình học: Nhận biết hình (vuông, chữ nhật, tam giác); tính chu vi hình tam giác, hình vuông, hình chữ nhật.
             - Bài toán có lời văn: Bài toán đơn giản về cộng, trừ, nhân, chia (ví dụ: "Lan có 5 quả táo, mẹ cho thêm 3 quả, hỏi Lan có bao nhiêu quả?")
 
             Cung cấp 3 gợi ý từng bước để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 2:
@@ -589,7 +589,16 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             extracted_text = extract_text_from_image(file_path)
             if extracted_text:
                 logging.info("Successfully extracted text with Vision API")
-                vision_extraction_success = True
+                
+                # Tách bài toán cụ thể từ extracted_text
+                specific_problem = extract_specific_problem(extracted_text, problem)
+                if not specific_problem:
+                    return ["Tớ không tìm thấy bài toán bạn yêu cầu. Bạn thử nhập lại nhé!"] * (3 if grade == "2" else 5)
+                # Gửi bài toán cụ thể cho API
+                user_prompt = f"""
+                Bài toán: {specific_problem}
+                Lớp: {grade}
+                """
             else:
                 logging.warning("Vision API returned no text")
         except Exception as e:
@@ -609,84 +618,6 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Nếu là danh sách bài toán: trả về một dòng duy nhất với nội dung: "Tớ thấy các bài toán: [danh sách]. Bạn muốn hỏi về câu nào?"
             - Nếu là thông báo lỗi: một dòng duy nhất.
             """
-            try:
-                with open(file_path, "rb") as f:
-                    file_base64 = base64.b64encode(f.read()).decode("utf-8")
-                logging.info(f"File encoded to base64 successfully: {file_path}")
-            except Exception as e:
-                logging.error(f"Error encoding file to base64: {str(e)}")
-                return ["Có lỗi khi đọc file. Bạn thử tải lại nhé!"] * (3 if grade == "2" else 5)
-
-            payload = {
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": system_prompt
-                    },
-                    {
-                        "role": "user",
-                        "content": user_prompt,
-                        "files": [
-                            {
-                                "file": file_base64,
-                                "type": file_type
-                            }
-                        ]
-                    }
-                ],
-                "model": "grok-3-latest",
-                "stream": False,
-                "temperature": 0.7,
-                "max_tokens": 500
-            }
-        else:
-            # Continue with regular text processing since Vision API succeeded
-            if problem:
-                # Tách bài toán cụ thể từ extracted_text
-                specific_problem = extract_specific_problem(extracted_text, problem)
-                if not specific_problem:
-                    return ["Tớ không tìm thấy bài toán bạn yêu cầu. Bạn thử nhập lại nhé!"] * (3 if grade == "2" else 5)
-                # Gửi bài toán cụ thể cho API
-                user_prompt = f"""
-                Bài toán: {specific_problem}
-                Lớp: {grade}
-                """
-            else:
-                # Tự động tạo danh sách bài toán từ extracted_text thay vì gửi cho API
-                logging.info("Automatically generating problem list from extracted text")
-                problems = []
-                patterns = [r'Bài\s+\d+', r'Câu\s+\d+', r'Bài\s+toán\s+\d+']
-                
-                for pattern in patterns:
-                    matches = re.findall(pattern, extracted_text)
-                    if matches:
-                        problems.extend(matches)
-                        break
-                
-                if problems:
-                    # Create problem list text
-                    problems_str = ", ".join(problems)
-                    problem_list = f"Tớ thấy các bài toán: {problems_str}. Bạn muốn hỏi về bài nào?"
-                    
-                    logging.info(f"Generated problem list: {problem_list}")
-                    session["extracted_problems"] = problem_list
-                    loading = False
-                    hint = problem_list
-                    session["extraction_status"] = "completed"
-                    return [problem_list]
-                else:
-                    # Không tìm thấy bài toán, vẫn giữ cách gửi API cũ
-                    logging.info("No problems detected in pattern matching, falling back to API")
-                    user_prompt = f"""
-                    Dưới đây là nội dung trích xuất từ file ảnh:\n{extracted_text}\n
-                    Nhiệm vụ của bạn là:
-                    1. Xác định danh sách các bài toán theo số thứ tự (ví dụ: "Câu 1", "Câu 2",...) từ nội dung đã trích xuất.
-                    2. Trả về danh sách các bài toán đã trích xuất và hỏi: "Tớ thấy các bài toán: [danh sách]. Bạn muốn hỏi về câu nào?"
-                    3. Nếu không xác định được bài toán nào từ nội dung, trả về: "Tớ không nhận diện được bài toán nào từ nội dung. Bạn thử nhập thủ công nhé!"
-                    Định dạng phản hồi:
-                    - Nếu là danh sách bài toán: trả về một dòng duy nhất với nội dung: "Tớ thấy các bài toán: [danh sách]. Bạn muốn hỏi về câu nào?"
-                    - Nếu là thông báo lỗi: một dòng duy nhất.
-                    """
         payload = {
             "messages": [
                 {
@@ -695,7 +626,13 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                 },
                 {
                     "role": "user",
-                    "content": user_prompt
+                    "content": user_prompt,
+                    "files": [
+                        {
+                            "file": base64.b64encode(open(file_path, "rb").read()).decode("utf-8"),
+                            "type": file_type
+                        }
+                    ]
                 }
             ],
             "model": "grok-3-latest",
@@ -703,71 +640,6 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             "temperature": 0.7,
             "max_tokens": 500
         }
-
-        for attempt in range(retries):
-            try:
-                # Backoff delay tăng dần theo số lần thử 
-                if attempt > 0:
-                    backoff_time = delay * (2 ** (attempt - 1))  # 2, 4, 8... giây
-                    logging.info(f"Retry {attempt}/{retries} - Waiting {backoff_time}s before retry...")
-                    sleep(backoff_time)
-                    
-                logging.info(f"Calling xAI API (attempt {attempt + 1}/{retries})...")
-                
-                # Tăng timeout từ 20s lên 30s
-                response = requests.post(url, headers=headers, json=payload, timeout=30)
-                logging.info(f"xAI API response status: {response.status_code}")
-                response.raise_for_status()
-                data = response.json()
-                
-                # Lưu log chi tiết hơn về response 
-                logging.info(f"API Response (Status {response.status_code})")
-                if "choices" in data and len(data["choices"]) > 0:
-                    response_text = data["choices"][0]["message"]["content"]
-                    lines = response_text.strip().split("\n")
-                    if len(lines) == 1:
-                        if "Tớ thấy các bài toán" in lines[0]:
-                            return lines
-                        elif "Tớ không đọc được" in lines[0] or "Tớ gặp khó khăn" in lines[0] or "Tớ không nhận diện được" in lines[0]:
-                            return lines + ["Bạn thử nhập lại hoặc chọn bài toán khác nhé!"] * (2 if grade == "2" else 4)
-                    while len(lines) < (3 if grade == "2" else 5):
-                        lines.append("Bạn thử áp dụng gợi ý trước để giải bài toán nhé!")
-                    
-                    # Lưu cache kết quả khi thành công
-                    if problem and not file_path:
-                        cache_key = f"{problem}_grade_{grade}"
-                        HINT_CACHE[cache_key] = lines[:(3 if grade == "2" else 5)]
-                        if len(HINT_CACHE) > 100:  # Tăng kích thước cache
-                            oldest_key = next(iter(HINT_CACHE))
-                            HINT_CACHE.pop(oldest_key)
-                        logging.info(f"Cached result for problem: {problem}")
-                    
-                    usage = data.get("usage", {})
-                    total_tokens = usage.get("total_tokens", 0)
-                    if "token_usage" not in session:
-                        session["token_usage"] = []
-                    session["token_usage"].append({
-                        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "problem": f"Image analysis",
-                        "total_tokens": total_tokens
-                    })
-                    session["token_usage"] = session["token_usage"][-50:]
-                    session.modified = True
-                    return lines[:(3 if grade == "2" else 5)]
-                else:
-                    logging.warning(f"Unexpected API response format: {data}")
-                    if attempt == retries - 1:
-                        logging_message = f"Failed after {retries} attempts with API. Returning default response."
-                        logging.error(logging_message)
-                        return ["Tớ gặp trục trặc khi lấy gợi ý. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
-            except requests.exceptions.Timeout:
-                logging.error(f"Attempt {attempt + 1}/{retries} - Timeout error calling xAI API")
-                if attempt == retries - 1:
-                    return ["API bị timeout. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
-            except requests.exceptions.RequestException as e:
-                logging.error(f"Attempt {attempt + 1}/{retries} - Error calling xAI API: {str(e)}")
-                if attempt == retries - 1:
-                    return ["Tớ gặp khó khăn khi kết nối với API. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
     else:
         # Regular text query without file
         user_prompt = f"""
@@ -790,70 +662,70 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             "temperature": 0.7,
             "max_tokens": 500
         }
-        for attempt in range(retries):
-            try:
-                # Backoff delay tăng dần theo số lần thử 
-                if attempt > 0:
-                    backoff_time = delay * (2 ** (attempt - 1))  # 2, 4, 8... giây
-                    logging.info(f"Retry {attempt}/{retries} - Waiting {backoff_time}s before retry...")
-                    sleep(backoff_time)
-                    
-                logging.info(f"Calling xAI API (attempt {attempt + 1}/{retries})...")
+    for attempt in range(retries):
+        try:
+            # Backoff delay tăng dần theo số lần thử 
+            if attempt > 0:
+                backoff_time = delay * (2 ** (attempt - 1))  # 2, 4, 8... giây
+                logging.info(f"Retry {attempt}/{retries} - Waiting {backoff_time}s before retry...")
+                sleep(backoff_time)
                 
-                # Tăng timeout từ 20s lên 30s
-                response = requests.post(url, headers=headers, json=payload, timeout=30)
-                logging.info(f"xAI API response status: {response.status_code}")
-                response.raise_for_status()
-                data = response.json()
+            logging.info(f"Calling xAI API (attempt {attempt + 1}/{retries})...")
+            
+            # Tăng timeout từ 20s lên 30s
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            logging.info(f"xAI API response status: {response.status_code}")
+            response.raise_for_status()
+            data = response.json()
+            
+            # Lưu log chi tiết hơn về response 
+            logging.info(f"API Response (Status {response.status_code})")
+            if "choices" in data and len(data["choices"]) > 0:
+                response_text = data["choices"][0]["message"]["content"]
+                lines = response_text.strip().split("\n")
+                if len(lines) == 1:
+                    if "Tớ thấy các bài toán" in lines[0]:
+                        return lines
+                    elif "Tớ không đọc được" in lines[0] or "Tớ gặp khó khăn" in lines[0] or "Tớ không nhận diện được" in lines[0]:
+                        return lines + ["Bạn thử nhập lại hoặc chọn bài toán khác nhé!"] * (2 if grade == "2" else 4)
+                while len(lines) < (3 if grade == "2" else 5):
+                    lines.append("Bạn thử áp dụng gợi ý trước để giải bài toán nhé!")
                 
-                # Lưu log chi tiết hơn về response 
-                logging.info(f"API Response (Status {response.status_code})")
-                if "choices" in data and len(data["choices"]) > 0:
-                    response_text = data["choices"][0]["message"]["content"]
-                    lines = response_text.strip().split("\n")
-                    if len(lines) == 1:
-                        if "Tớ thấy các bài toán" in lines[0]:
-                            return lines
-                        elif "Tớ không đọc được" in lines[0] or "Tớ gặp khó khăn" in lines[0] or "Tớ không nhận diện được" in lines[0]:
-                            return lines + ["Bạn thử nhập lại hoặc chọn bài toán khác nhé!"] * (2 if grade == "2" else 4)
-                    while len(lines) < (3 if grade == "2" else 5):
-                        lines.append("Bạn thử áp dụng gợi ý trước để giải bài toán nhé!")
-                    
-                    # Lưu cache kết quả khi thành công
-                    if problem and not file_path:
-                        cache_key = f"{problem}_grade_{grade}"
-                        HINT_CACHE[cache_key] = lines[:(3 if grade == "2" else 5)]
-                        if len(HINT_CACHE) > 100:  # Tăng kích thước cache
-                            oldest_key = next(iter(HINT_CACHE))
-                            HINT_CACHE.pop(oldest_key)
-                        logging.info(f"Cached result for problem: {problem}")
-                    
-                    usage = data.get("usage", {})
-                    total_tokens = usage.get("total_tokens", 0)
-                    if "token_usage" not in session:
-                        session["token_usage"] = []
-                    session["token_usage"].append({
-                        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "problem": problem if problem else "Image analysis",
-                        "total_tokens": total_tokens
-                    })
-                    session["token_usage"] = session["token_usage"][-50:]
-                    session.modified = True
-                    return lines[:(3 if grade == "2" else 5)]
-                else:
-                    logging.warning(f"Unexpected API response format: {data}")
-                    if attempt == retries - 1:
-                        logging_message = f"Failed after {retries} attempts with API. Returning default response."
-                        logging.error(logging_message)
-                        return ["Tớ gặp trục trặc khi lấy gợi ý. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
-            except requests.exceptions.Timeout:
-                logging.error(f"Attempt {attempt + 1}/{retries} - Timeout error calling xAI API")
+                # Lưu cache kết quả khi thành công
+                if problem and not file_path:
+                    cache_key = f"{problem}_grade_{grade}_subject_{subject}"
+                    HINT_CACHE[cache_key] = lines[:(3 if grade == "2" else 5)]
+                    if len(HINT_CACHE) > 100:  # Tăng kích thước cache
+                        oldest_key = next(iter(HINT_CACHE))
+                        HINT_CACHE.pop(oldest_key)
+                    logging.info(f"Cached result for problem: {problem}")
+                
+                usage = data.get("usage", {})
+                total_tokens = usage.get("total_tokens", 0)
+                if "token_usage" not in session:
+                    session["token_usage"] = []
+                session["token_usage"].append({
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "problem": f"Image analysis",
+                    "total_tokens": total_tokens
+                })
+                session["token_usage"] = session["token_usage"][-50:]
+                session.modified = True
+                return lines[:(3 if grade == "2" else 5)]
+            else:
+                logging.warning(f"Unexpected API response format: {data}")
                 if attempt == retries - 1:
-                    return ["API bị timeout. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
-            except requests.exceptions.RequestException as e:
-                logging.error(f"Attempt {attempt + 1}/{retries} - Error calling xAI API: {str(e)}")
-                if attempt == retries - 1:
-                    return ["Tớ gặp khó khăn khi kết nối với API. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
+                    logging_message = f"Failed after {retries} attempts with API. Returning default response."
+                    logging.error(logging_message)
+                    return ["Tớ gặp trục trặc khi lấy gợi ý. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
+        except requests.exceptions.Timeout:
+            logging.error(f"Attempt {attempt + 1}/{retries} - Timeout error calling xAI API")
+            if attempt == retries - 1:
+                return ["API bị timeout. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Attempt {attempt + 1}/{retries} - Error calling xAI API: {str(e)}")
+            if attempt == retries - 1:
+                return ["Tớ gặp khó khăn khi kết nối với API. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
 
 demo_hint = "Nhập bài toán hoặc tải ảnh để nhận gợi ý!"
 
@@ -1013,15 +885,15 @@ def kids():
             
             # Prepare response
             response = make_response(render_template("kids.html", hint=hint, tip=tip, loading=loading, 
-                                        current_question=session["current_question"], 
-                                        current_step=session["current_step"],
-                                        recent_questions=session["recent_questions"], 
-                                        image_path=session.get("image_path"),
-                                        attached_file=session.get("attached_file"),
-                                        extracted_problems=session.get("extracted_problems"),
-                                        extraction_status=session.get("extraction_status", ""),
-                                        loading_message=loading_message,
-                                        timestamp=int(time())))
+                                               current_question=session["current_question"], 
+                                               current_step=session["current_step"],
+                                               recent_questions=session["recent_questions"], 
+                                               image_path=session.get("image_path"),
+                                               attached_file=session.get("attached_file"),
+                                               extracted_problems=session.get("extracted_problems"),
+                                               extraction_status=session.get("extraction_status", ""),
+                                               loading_message=loading_message,
+                                               timestamp=int(time())))
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
             response.headers["Pragma"] = "no-cache"
             response.headers["Expires"] = "0"
@@ -1202,7 +1074,62 @@ def kids():
             if clear_extracted_problems:
                 session["extracted_problems"] = None
                 logging.info("Cleared extracted_problems due to clear_extracted_problems flag")
-                
+
+            # Nếu user chọn bài toán từ danh sách sau OCR
+            direct_question = request.form.get("direct_question")
+            if direct_question and session.get("attached_file") and session.get("extraction_status") == "completed":
+                # Trích xuất nội dung bài toán cụ thể
+                extracted_text = extract_text_from_image(session["attached_file"])
+                specific_problem = extract_specific_problem(extracted_text, direct_question)
+                if specific_problem:
+                    session["current_question"] = specific_problem
+                    session["current_step"] = 0
+                    session["cache_key"] = None
+                    loading = True
+                    loading_message = "Cho tớ suy nghĩ chút nhé!"
+                    session["image_path"] = None
+                    session.modified = True
+                    # Gọi API chỉ với nội dung bài toán đã chọn
+                    grade = session.get("grade", "4")
+                    hints = call_xai_api(specific_problem, grade)
+                    hint = hints[0] if hints else "Tớ chưa nghĩ ra gợi ý. Bạn thử lại nhé!"
+                    loading = False
+                    session["extracted_problems"] = None
+                    session["extraction_status"] = ""
+                    response = make_response(render_template("kids.html", hint=hint, tip=tip, loading=loading, 
+                                                           current_question=session["current_question"], 
+                                                           current_step=session["current_step"],
+                                                           recent_questions=session["recent_questions"], 
+                                                           image_path=session.get("image_path"),
+                                                           attached_file=session.get("attached_file"),
+                                                           extracted_problems=session.get("extracted_problems"),
+                                                           loading_message=loading_message,
+                                                           timestamp=int(time())))
+                    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+                    response.headers["Pragma"] = "no-cache"
+                    response.headers["Expires"] = "0"
+                    return response
+                else:
+                    hint = "Tớ không tìm thấy nội dung bài toán bạn chọn. Bạn thử lại nhé!"
+                    loading = False
+                    session["current_question"] = ""
+                    session["cache_key"] = None
+                    session["image_path"] = None
+                    response = make_response(render_template("kids.html", hint=hint, tip=tip, loading=loading, 
+                                                           current_question=session["current_question"], 
+                                                           current_step=session["current_step"],
+                                                           recent_questions=session["recent_questions"], 
+                                                           image_path=session.get("image_path"),
+                                                           attached_file=session.get("attached_file"),
+                                                           extracted_problems=session.get("extracted_problems"),
+                                                           loading_message=loading_message,
+                                                           timestamp=int(time())))
+                    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+                    response.headers["Pragma"] = "no-cache"
+                    response.headers["Expires"] = "0"
+                    return response
+            # --- END PATCH: handle direct_question from OCR selection ---
+
             if question and not session.get("extracted_problems"):
                 recent = session["recent_questions"]
                 question = question[:100]
