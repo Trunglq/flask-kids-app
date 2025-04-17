@@ -147,7 +147,7 @@ def extract_specific_problem(extracted_text, problem):
         logging.error(f"Error extracting specific problem: {str(e)}")
         return None
 
-def get_parent_tip_from_api(question, retries=1, delay=2):
+def get_parent_tip_from_api(question, retries=3, delay=2):
     check_rate_limit()
     
     if "tip_cache" in session and question in session["tip_cache"]:
@@ -205,10 +205,17 @@ def get_parent_tip_from_api(question, retries=1, delay=2):
     }
     for attempt in range(retries):
         try:
-            response = requests.post(url, headers=headers, json=payload, timeout=15)
+            # Backoff delay tăng dần theo số lần thử 
+            if attempt > 0:
+                backoff_time = delay * (2 ** (attempt - 1))  # 2, 4, 8... giây
+                logging.info(f"Retry {attempt}/{retries} - Waiting {backoff_time}s before retry...")
+                sleep(backoff_time)
+
+            logging.info(f"Calling xAI API for parent tip (attempt {attempt + 1}/{retries})...")
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
             response.raise_for_status()
             data = response.json()
-            logging.info(f"API Response for tip (Status {response.status_code}): {data}")
+            logging.info(f"API Response for tip (Status {response.status_code})")
             if "choices" in data and len(data["choices"]) > 0:
                 tip = data["choices"][0]["message"]["content"].strip()
                 if "tip_cache" not in session:
@@ -230,13 +237,15 @@ def get_parent_tip_from_api(question, retries=1, delay=2):
                 return tip
             else:
                 logging.warning(f"Unexpected API response format for tip: {data}")
+                if attempt == retries - 1:
+                    return "Hãy khuyến khích con chia bài toán thành các bước nhỏ và hỏi: 'Con nghĩ bước đầu tiên mình cần làm gì?'"
+        except requests.exceptions.Timeout:
+            logging.error(f"Attempt {attempt + 1}/{retries} - Timeout error calling xAI API for tip")
+            if attempt == retries - 1:
                 return "Hãy khuyến khích con chia bài toán thành các bước nhỏ và hỏi: 'Con nghĩ bước đầu tiên mình cần làm gì?'"
         except requests.exceptions.RequestException as e:
             logging.error(f"Attempt {attempt + 1}/{retries} - Error calling xAI API for tip: {str(e)}")
-            if attempt < retries - 1:
-                logging.info(f"Retrying in {delay} seconds...")
-                sleep(delay)
-            else:
+            if attempt == retries - 1:
                 return "Hãy khuyến khích con chia bài toán thành các bước nhỏ và hỏi: 'Con nghĩ bước đầu tiên mình cần làm gì?'"
 
 def is_geometry_problem(question):
@@ -253,8 +262,15 @@ def standardize_math_input(question):
     question = re.sub(r'(\w+)\^2', r'\1^2', question)
     return question
 
-def call_xai_api(problem=None, grade=None, file_path=None, retries=2, delay=2):
+def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
     check_rate_limit()
+    
+    # Cải thiện: Thử lấy từ cache trước nếu là vấn đề văn bản
+    if problem and not file_path:
+        cache_key = f"{problem}_grade_{grade}"
+        if cache_key in HINT_CACHE:
+            logging.info(f"Using cached hints for: {problem}")
+            return HINT_CACHE[cache_key]
     
     url = "https://api.x.ai/v1/chat/completions"
     headers = {
@@ -523,12 +539,22 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=2, delay=2):
 
         for attempt in range(retries):
             try:
+                # Backoff delay tăng dần theo số lần thử 
+                if attempt > 0:
+                    backoff_time = delay * (2 ** (attempt - 1))  # 2, 4, 8... giây
+                    logging.info(f"Retry {attempt}/{retries} - Waiting {backoff_time}s before retry...")
+                    sleep(backoff_time)
+                    
                 logging.info(f"Calling xAI API (attempt {attempt + 1}/{retries})...")
-                response = requests.post(url, headers=headers, json=payload, timeout=20)
+                
+                # Tăng timeout từ 20s lên 30s
+                response = requests.post(url, headers=headers, json=payload, timeout=30)
                 logging.info(f"xAI API response status: {response.status_code}")
                 response.raise_for_status()
                 data = response.json()
-                logging.info(f"API Response (Status {response.status_code}): {data}")
+                
+                # Lưu log chi tiết hơn về response 
+                logging.info(f"API Response (Status {response.status_code})")
                 if "choices" in data and len(data["choices"]) > 0:
                     response_text = data["choices"][0]["message"]["content"]
                     lines = response_text.strip().split("\n")
@@ -539,6 +565,16 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=2, delay=2):
                             return lines + ["Bạn thử nhập lại hoặc chọn bài toán khác nhé!"] * (2 if grade == "2" else 4)
                     while len(lines) < (3 if grade == "2" else 5):
                         lines.append("Bạn thử áp dụng gợi ý trước để giải bài toán nhé!")
+                    
+                    # Lưu cache kết quả khi thành công
+                    if problem and not file_path:
+                        cache_key = f"{problem}_grade_{grade}"
+                        HINT_CACHE[cache_key] = lines[:(3 if grade == "2" else 5)]
+                        if len(HINT_CACHE) > 100:  # Tăng kích thước cache
+                            oldest_key = next(iter(HINT_CACHE))
+                            HINT_CACHE.pop(oldest_key)
+                        logging.info(f"Cached result for problem: {problem}")
+                    
                     usage = data.get("usage", {})
                     total_tokens = usage.get("total_tokens", 0)
                     if "token_usage" not in session:
@@ -554,13 +590,16 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=2, delay=2):
                 else:
                     logging.warning(f"Unexpected API response format: {data}")
                     if attempt == retries - 1:
+                        logging_message = f"Failed after {retries} attempts with API. Returning default response."
+                        logging.error(logging_message)
                         return ["Tớ gặp trục trặc khi lấy gợi ý. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
+            except requests.exceptions.Timeout:
+                logging.error(f"Attempt {attempt + 1}/{retries} - Timeout error calling xAI API")
+                if attempt == retries - 1:
+                    return ["API bị timeout. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
             except requests.exceptions.RequestException as e:
                 logging.error(f"Attempt {attempt + 1}/{retries} - Error calling xAI API: {str(e)}")
-                if attempt < retries - 1:
-                    logging.info(f"Retrying in {delay} seconds...")
-                    sleep(delay)
-                else:
+                if attempt == retries - 1:
                     return ["Tớ gặp khó khăn khi kết nối với API. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
     else:
         # Regular text query without file
@@ -586,17 +625,42 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=2, delay=2):
         }
         for attempt in range(retries):
             try:
+                # Backoff delay tăng dần theo số lần thử 
+                if attempt > 0:
+                    backoff_time = delay * (2 ** (attempt - 1))  # 2, 4, 8... giây
+                    logging.info(f"Retry {attempt}/{retries} - Waiting {backoff_time}s before retry...")
+                    sleep(backoff_time)
+                    
                 logging.info(f"Calling xAI API (attempt {attempt + 1}/{retries})...")
-                response = requests.post(url, headers=headers, json=payload, timeout=20)
+                
+                # Tăng timeout từ 20s lên 30s
+                response = requests.post(url, headers=headers, json=payload, timeout=30)
                 logging.info(f"xAI API response status: {response.status_code}")
                 response.raise_for_status()
                 data = response.json()
-                logging.info(f"API Response (Status {response.status_code}): {data}")
+                
+                # Lưu log chi tiết hơn về response 
+                logging.info(f"API Response (Status {response.status_code})")
                 if "choices" in data and len(data["choices"]) > 0:
                     response_text = data["choices"][0]["message"]["content"]
                     lines = response_text.strip().split("\n")
+                    if len(lines) == 1:
+                        if "Tớ thấy các bài toán" in lines[0]:
+                            return lines
+                        elif "Tớ không đọc được" in lines[0] or "Tớ gặp khó khăn" in lines[0] or "Tớ không nhận diện được" in lines[0]:
+                            return lines + ["Bạn thử nhập lại hoặc chọn bài toán khác nhé!"] * (2 if grade == "2" else 4)
                     while len(lines) < (3 if grade == "2" else 5):
                         lines.append("Bạn thử áp dụng gợi ý trước để giải bài toán nhé!")
+                    
+                    # Lưu cache kết quả khi thành công
+                    if problem and not file_path:
+                        cache_key = f"{problem}_grade_{grade}"
+                        HINT_CACHE[cache_key] = lines[:(3 if grade == "2" else 5)]
+                        if len(HINT_CACHE) > 100:  # Tăng kích thước cache
+                            oldest_key = next(iter(HINT_CACHE))
+                            HINT_CACHE.pop(oldest_key)
+                        logging.info(f"Cached result for problem: {problem}")
+                    
                     usage = data.get("usage", {})
                     total_tokens = usage.get("total_tokens", 0)
                     if "token_usage" not in session:
@@ -612,13 +676,16 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=2, delay=2):
                 else:
                     logging.warning(f"Unexpected API response format: {data}")
                     if attempt == retries - 1:
+                        logging_message = f"Failed after {retries} attempts with API. Returning default response."
+                        logging.error(logging_message)
                         return ["Tớ gặp trục trặc khi lấy gợi ý. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
+            except requests.exceptions.Timeout:
+                logging.error(f"Attempt {attempt + 1}/{retries} - Timeout error calling xAI API")
+                if attempt == retries - 1:
+                    return ["API bị timeout. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
             except requests.exceptions.RequestException as e:
                 logging.error(f"Attempt {attempt + 1}/{retries} - Error calling xAI API: {str(e)}")
-                if attempt < retries - 1:
-                    logging.info(f"Retrying in {delay} seconds...")
-                    sleep(delay)
-                else:
+                if attempt == retries - 1:
                     return ["Tớ gặp khó khăn khi kết nối với API. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
 
 demo_hint = "Nhập bài toán hoặc tải ảnh để nhận gợi ý!"
