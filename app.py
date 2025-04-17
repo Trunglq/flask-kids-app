@@ -669,7 +669,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                 backoff_time = delay * (2 ** (attempt - 1))  # 2, 4, 8... giây
                 logging.info(f"Retry {attempt}/{retries} - Waiting {backoff_time}s before retry...")
                 sleep(backoff_time)
-                
+
             logging.info(f"Calling xAI API (attempt {attempt + 1}/{retries})...")
             
             # Tăng timeout từ 20s lên 30s
@@ -934,7 +934,6 @@ def kids():
                                      image_path=session.get("image_path"),
                                      attached_file=session.get("attached_file"),
                                      extracted_problems=session.get("extracted_problems"),
-                                     extraction_status=session.get("extraction_status", ""),
                                      loading_message=loading_message,
                                      timestamp=int(time()))
             
@@ -1228,7 +1227,10 @@ def kids():
             except Exception as e:
                 logging.error(f"Error fetching hints: {str(e)}")
                 loading = False
-                hint = "Có lỗi xảy ra khi lấy gợi ý. Bạn thử lại sau nhé!"
+                if session.get("extracted_problems"):
+                    hint = f"Có lỗi xảy ra khi lấy gợi ý cho bài toán này. Bạn thử chọn lại bài khác nhé!\n\n{session['extracted_problems']}"
+                else:
+                    hint = "Có lỗi xảy ra khi lấy gợi ý. Bạn thử lại sau nhé!"
                 # KHÔNG xóa attached_file hay extracted_problems
                 session.modified = True
 
