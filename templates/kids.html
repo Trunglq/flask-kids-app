@@ -361,7 +361,16 @@
                                 . Bạn muốn hỏi về bài nào?
                             </p>
                         {% else %}
+                            {% if hint == "Nhập bài toán, bài tập Tiếng Việt hoặc tải ảnh đề bài để nhận gợi ý nhé! Đừng ngại hỏi bất cứ điều gì, tớ luôn sẵn sàng giúp bạn! 😊" %}
+                            <p class="hint-text">
+                              <b>Hướng dẫn:</b> Bạn hãy nhập một bài toán Toán hoặc một bài tập Tiếng Việt/Văn vào ô bên dưới, hoặc tải lên ảnh chụp đề bài để nhận gợi ý từng bước phù hợp với lứa tuổi.<br>
+                              <span style="color:#4CAF50;">
+                                Bạn có thể hỏi về phép tính, bài toán có lời văn, hoặc bài tập đọc hiểu, luyện từ và câu, tập làm văn... Nếu tải ảnh, hệ thống sẽ tự động trích xuất và gợi ý cho bạn.
+                              </span>
+                            </p>
+                            {% else %}
                             <p class="hint-text">{% if current_step > 0 %}Gợi ý {{ current_step + 1 }}: {% endif %}{{ hint }}</p>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 {% endif %}
@@ -378,7 +387,7 @@
                     </div>
                 {% endif %}
             </div>
-            {% if hint != "Nhập bài toán hoặc tải ảnh để nhận gợi ý!" and hint != "File đã được tải lên thành công. Đang tự động trích xuất nội dung..." and not loading %}
+            {% if hint != "Nhập bài toán, bài tập Tiếng Việt hoặc tải ảnh đề bài để nhận gợi ý nhé! Đừng ngại hỏi bất cứ điều gì, tớ luôn sẵn sàng giúp bạn! 😊" and hint != "File đã được tải lên thành công. Đang tự động trích xuất nội dung..." and not loading %}
                 <form method="POST" id="action-form">
                     <div class="button-container">
                         <button type="submit" name="action" value="explain_more" class="full-width-btn explain-more-btn">
@@ -404,126 +413,130 @@
 
         <!-- Cột danh sách bài toán phổ biến (20%) -->
         <div class="popular-column">
-            <h3>Những bài toán phổ biến lớp {{ session.get('grade', '4') }} 📚</h3>
-            <div class="problem-list">
-                {% if session.get('grade', '4') == '1' %}
-                    <!-- Bài toán lớp 1 -->
-                    <div class="problem-item" onclick="selectProblem('Tính: 5 + 3')">
-                        Tính: 5 + 3
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Tính: 9 - 4')">
-                        Tính: 9 - 4
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Lan có 6 quả táo, mẹ cho thêm 2 quả. Hỏi Lan có bao nhiêu quả táo?')">
-                        Lan có 6 quả táo, mẹ cho thêm 2 quả. Hỏi Lan có bao nhiêu quả táo?
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('An có 7 cái kẹo, An cho bạn Mai 3 cái. Hỏi An còn lại bao nhiêu cái kẹo?')">
-                        An có 7 cái kẹo, An cho bạn Mai 3 cái. Hỏi An còn lại bao nhiêu cái kẹo?
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Vẽ 1 hình tam giác, 1 hình tròn và 1 hình vuông')">
-                        Vẽ 1 hình tam giác, 1 hình tròn và 1 hình vuông
-                    </div>
-                {% elif session.get('grade', '4') == '2' %}
-                    <!-- Bài toán lớp 2 -->
-                    <div class="problem-item" onclick="selectProblem('Thực hiện phép tính: 52 + 18 - 33')">
-                        Thực hiện phép tính: 52 + 18 - 33
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Điền số thích hợp vào chỗ chấm: 9 + … - … = 15')">
-                        Điền số thích hợp vào chỗ chấm: 9 + … - … = 15
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Tìm x biết: x - 29 = 12')">
-                        Tìm x biết: x - 29 = 12
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15')">
-                        Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Đặt tính rồi tính: 72 - 29')">
-                        Đặt tính rồi tính: 72 - 29
-                    </div>
-                {% elif session.get('grade', '4') == '3' %}
-                    <!-- Bài toán lớp 3 -->
-                    <div class="problem-item" onclick="selectProblem('Tính: 245 + 378')">
-                        Tính: 245 + 378
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Tính: 486 ÷ 2')">
-                        Tính: 486 ÷ 2
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Tính chu vi hình tam giác có 3 cạnh lần lượt là 5 cm, 7 cm và 8 cm.')">
-                        Tính chu vi hình tam giác có 3 cạnh lần lượt là 5 cm, 7 cm và 8 cm.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Một cửa hàng có 120 quả táo, bán được 45 quả. Hỏi còn lại bao nhiêu quả?')">
-                        Một cửa hàng có 120 quả táo, bán được 45 quả. Hỏi còn lại bao nhiêu quả?
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Thực hiện phép tính: 7 × 8')">
-                        Thực hiện phép tính: 7 × 8
-                    </div>
-                {% elif session.get('grade', '4') == '4' %}
-                    <div class="problem-item" onclick="selectProblem('Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.')">
-                        Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Cộng hai phân số 3/7 và 2/7.')">
-                        Cộng hai phân số 3/7 và 2/7.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?')">
-                        Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?')">
-                        Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?')">
-                        Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?
-                    </div>
-                {% elif session.get('grade', '4') == '6' %}
-                    <!-- Bài toán lớp 6 -->
-                    <div class="problem-item" onclick="selectProblem('Tính giá trị biểu thức: -15 + 7')">
-                        Tính giá trị biểu thức: -15 + 7
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Giải phương trình: 2x + 3 = 11')">
-                        Giải phương trình: 2x + 3 = 11
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Tính diện tích hình tam giác có đáy 8 cm và chiều cao 5 cm.')">
-                        Tính diện tích hình tam giác có đáy 8 cm và chiều cao 5 cm.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Viết dưới dạng số thập phân: 3/4')">
-                        Viết dưới dạng số thập phân: 3/4
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Bảng sau ghi điểm toán của 40 học sinh: Điểm 5: 4 học sinh, điểm 6: 8 học sinh, điểm 7: 10 học sinh, điểm 8: 12 học sinh, điểm 9: 6 học sinh. Tính điểm trung bình của 40 học sinh.')">
-                        Tính điểm trung bình của 40 học sinh trong bảng điểm toán
-                    </div>
-                {% elif session.get('grade', '4') == '7' %}
-                    <!-- Bài toán lớp 7 -->
-                    <div class="problem-item" onclick="selectProblem('Tính giá trị biểu thức: 3/4 + 5/6 - 1/3.')">
-                        Tính giá trị biểu thức: 3/4 + 5/6 - 1/3.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Tìm x trong tỉ lệ thức: 2/3 = x/9.')">
-                        Tìm x trong tỉ lệ thức: 2/3 = x/9.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Rút gọn: (2x^2 - 3x + 5) + (x^2 + 4x - 1).')">
-                        Rút gọn: (2x^2 - 3x + 5) + (x^2 + 4x - 1).
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Cho tam giác ABC có góc A = 50°, góc B = 60°. Tính góc C.')">
-                        Cho tam giác ABC có góc A = 50°, góc B = 60°. Tính góc C.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.')">
-                        Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.
-                    </div>
+            <h3>
+                {% if session.get('subject', 'math') == 'math' %}
+                    Những bài toán phổ biến lớp {{ session.get('grade', '4') }} 📚
                 {% else %}
-                    <!-- Mặc định hiển thị bài toán lớp 4 nếu không có lớp được chọn -->
-                    <div class="problem-item" onclick="selectProblem('Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.')">
-                        Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Cộng hai phân số 3/7 và 2/7.')">
-                        Cộng hai phân số 3/7 và 2/7.
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?')">
-                        Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?')">
-                        Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?
-                    </div>
-                    <div class="problem-item" onclick="selectProblem('Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?')">
-                        Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?
-                    </div>
+                    Những bài Tiếng Việt/Văn phổ biến lớp {{ session.get('grade', '4') }} 📖
+                {% endif %}
+            </h3>
+            <div class="problem-list">
+                {% if session.get('subject', 'math') == 'math' %}
+                    {% if session.get('grade', '4') == '1' %}
+                        <!-- Bài toán lớp 1 -->
+                        <div class="problem-item" onclick="selectProblem('Tính: 5 + 3')">Tính: 5 + 3</div>
+                        <div class="problem-item" onclick="selectProblem('Tính: 9 - 4')">Tính: 9 - 4</div>
+                        <div class="problem-item" onclick="selectProblem('Lan có 6 quả táo, mẹ cho thêm 2 quả. Hỏi Lan có bao nhiêu quả táo?')">Lan có 6 quả táo, mẹ cho thêm 2 quả. Hỏi Lan có bao nhiêu quả táo?</div>
+                        <div class="problem-item" onclick="selectProblem('An có 7 cái kẹo, An cho bạn Mai 3 cái. Hỏi An còn lại bao nhiêu cái kẹo?')">An có 7 cái kẹo, An cho bạn Mai 3 cái. Hỏi An còn lại bao nhiêu cái kẹo?</div>
+                        <div class="problem-item" onclick="selectProblem('Vẽ 1 hình tam giác, 1 hình tròn và 1 hình vuông')">Vẽ 1 hình tam giác, 1 hình tròn và 1 hình vuông</div>
+                    {% elif session.get('grade', '4') == '2' %}
+                        <!-- Bài toán lớp 2 -->
+                        <div class="problem-item" onclick="selectProblem('Thực hiện phép tính: 52 + 18 - 33')">Thực hiện phép tính: 52 + 18 - 33</div>
+                        <div class="problem-item" onclick="selectProblem('Điền số thích hợp vào chỗ chấm: 9 + … - … = 15')">Điền số thích hợp vào chỗ chấm: 9 + … - … = 15</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm x biết: x - 29 = 12')">Tìm x biết: x - 29 = 12</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15')">Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt tính rồi tính: 72 - 29')">Đặt tính rồi tính: 72 - 29</div>
+                    {% elif session.get('grade', '4') == '3' %}
+                        <!-- Bài toán lớp 3 -->
+                        <div class="problem-item" onclick="selectProblem('Tính: 245 + 378')">Tính: 245 + 378</div>
+                        <div class="problem-item" onclick="selectProblem('Tính: 486 ÷ 2')">Tính: 486 ÷ 2</div>
+                        <div class="problem-item" onclick="selectProblem('Tính chu vi hình tam giác có 3 cạnh lần lượt là 5 cm, 7 cm và 8 cm.')">Tính chu vi hình tam giác có 3 cạnh lần lượt là 5 cm, 7 cm và 8 cm.</div>
+                        <div class="problem-item" onclick="selectProblem('Một cửa hàng có 120 quả táo, bán được 45 quả. Hỏi còn lại bao nhiêu quả?')">Một cửa hàng có 120 quả táo, bán được 45 quả. Hỏi còn lại bao nhiêu quả?</div>
+                        <div class="problem-item" onclick="selectProblem('Thực hiện phép tính: 7 × 8')">Thực hiện phép tính: 7 × 8</div>
+                    {% elif session.get('grade', '4') == '4' %}
+                        <!-- Bài toán lớp 4 -->
+                        <div class="problem-item" onclick="selectProblem('Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.')">Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.</div>
+                        <div class="problem-item" onclick="selectProblem('Cộng hai phân số 3/7 và 2/7.')">Cộng hai phân số 3/7 và 2/7.</div>
+                        <div class="problem-item" onclick="selectProblem('Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?')">Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?</div>
+                        <div class="problem-item" onclick="selectProblem('Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?')">Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?</div>
+                        <div class="problem-item" onclick="selectProblem('Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?')">Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?</div>
+                    {% elif session.get('grade', '4') == '5' %}
+                        <!-- Bài toán lớp 5 -->
+                        <div class="problem-item" onclick="selectProblem('Tính diện tích hình thang có đáy lớn 12 cm, đáy bé 8 cm, chiều cao 5 cm.')">Tính diện tích hình thang có đáy lớn 12 cm, đáy bé 8 cm, chiều cao 5 cm.</div>
+                        <div class="problem-item" onclick="selectProblem('Một bể nước có thể tích 120 lít, đã lấy ra 35 lít nước. Hỏi còn lại bao nhiêu lít nước?')">Một bể nước có thể tích 120 lít, đã lấy ra 35 lít nước. Hỏi còn lại bao nhiêu lít nước?</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm x biết: x × 7 = 56')">Tìm x biết: x × 7 = 56</div>
+                        <div class="problem-item" onclick="selectProblem('Một cửa hàng bán 15 kg gạo với giá 12.000 đồng/kg. Hỏi tổng số tiền bán được?')">Một cửa hàng bán 15 kg gạo với giá 12.000 đồng/kg. Hỏi tổng số tiền bán được?</div>
+                        <div class="problem-item" onclick="selectProblem('Một hình chữ nhật có chu vi 36 cm, chiều dài hơn chiều rộng 4 cm. Tính diện tích hình chữ nhật đó.')">Một hình chữ nhật có chu vi 36 cm, chiều dài hơn chiều rộng 4 cm. Tính diện tích hình chữ nhật đó.</div>
+                    {% elif session.get('grade', '4') == '6' %}
+                        <!-- Bài toán lớp 6 -->
+                        <div class="problem-item" onclick="selectProblem('Tính giá trị biểu thức: -15 + 7')">Tính giá trị biểu thức: -15 + 7</div>
+                        <div class="problem-item" onclick="selectProblem('Giải phương trình: 2x + 3 = 11')">Giải phương trình: 2x + 3 = 11</div>
+                        <div class="problem-item" onclick="selectProblem('Tính diện tích hình tam giác có đáy 8 cm và chiều cao 5 cm.')">Tính diện tích hình tam giác có đáy 8 cm và chiều cao 5 cm.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết dưới dạng số thập phân: 3/4')">Viết dưới dạng số thập phân: 3/4</div>
+                        <div class="problem-item" onclick="selectProblem('Bảng sau ghi điểm toán của 40 học sinh: Điểm 5: 4 học sinh, điểm 6: 8 học sinh, điểm 7: 10 học sinh, điểm 8: 12 học sinh, điểm 9: 6 học sinh. Tính điểm trung bình của 40 học sinh.')">Tính điểm trung bình của 40 học sinh trong bảng điểm toán</div>
+                    {% elif session.get('grade', '4') == '7' %}
+                        <!-- Bài toán lớp 7 -->
+                        <div class="problem-item" onclick="selectProblem('Tính giá trị biểu thức: 3/4 + 5/6 - 1/3.')">Tính giá trị biểu thức: 3/4 + 5/6 - 1/3.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm x trong tỉ lệ thức: 2/3 = x/9.')">Tìm x trong tỉ lệ thức: 2/3 = x/9.</div>
+                        <div class="problem-item" onclick="selectProblem('Rút gọn: (2x^2 - 3x + 5) + (x^2 + 4x - 1).')">Rút gọn: (2x^2 - 3x + 5) + (x^2 + 4x - 1).</div>
+                        <div class="problem-item" onclick="selectProblem('Cho tam giác ABC có góc A = 50°, góc B = 60°. Tính góc C.')">Cho tam giác ABC có góc A = 50°, góc B = 60°. Tính góc C.</div>
+                        <div class="problem-item" onclick="selectProblem('Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.')">Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.</div>
+                    {% else %}
+                        <!-- Mặc định hiển thị bài toán lớp 4 nếu không có lớp được chọn -->
+                        <div class="problem-item" onclick="selectProblem('Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.')">Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.</div>
+                        <div class="problem-item" onclick="selectProblem('Cộng hai phân số 3/7 và 2/7.')">Cộng hai phân số 3/7 và 2/7.</div>
+                        <div class="problem-item" onclick="selectProblem('Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?')">Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?</div>
+                        <div class="problem-item" onclick="selectProblem('Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?')">Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?</div>
+                        <div class="problem-item" onclick="selectProblem('Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?')">Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?</div>
+                    {% endif %}
+                {% else %}
+                    {% if session.get('grade', '4') == '1' %}
+                        <!-- Tiếng Việt lớp 1 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc to đoạn văn sau: “Bé Na đi học về, vui vẻ kể chuyện cho mẹ nghe.”')">Đọc to đoạn văn sau: “Bé Na đi học về, vui vẻ kể chuyện cho mẹ nghe.”</div>
+                        <div class="problem-item" onclick="selectProblem('Điền chữ cái còn thiếu: _ả, _ải, _ay, _an, _ang.')">Điền chữ cái còn thiếu: _ả, _ải, _ay, _an, _ang.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm các từ có vần “an”.')">Tìm các từ có vần “an”.</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt câu với từ “bạn”.')">Đặt câu với từ “bạn”.</div>
+                        <div class="problem-item" onclick="selectProblem('Khoanh tròn vào tiếng có âm “ch”: chim, cá, chó, mèo.')">Khoanh tròn vào tiếng có âm “ch”: chim, cá, chó, mèo.</div>
+                    {% elif session.get('grade', '4') == '2' %}
+                        <!-- Tiếng Việt lớp 2 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc đoạn văn và trả lời: “Nam thích giúp đỡ bạn bè. Em hãy kể một việc làm tốt của Nam.”')">Đọc đoạn văn và trả lời: “Nam thích giúp đỡ bạn bè. Em hãy kể một việc làm tốt của Nam.”</div>
+                        <div class="problem-item" onclick="selectProblem('Điền vào chỗ trống: “Con ... đang bay trên bầu trời.”')">Điền vào chỗ trống: “Con ... đang bay trên bầu trời.”</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm từ trái nghĩa với “cao”.')">Tìm từ trái nghĩa với “cao”.</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt câu hỏi cho câu: “Lan đang học bài.”')">Đặt câu hỏi cho câu: “Lan đang học bài.”</div>
+                        <div class="problem-item" onclick="selectProblem('Gạch chân dưới các từ chỉ hoạt động trong câu: “Bé chạy nhảy ngoài sân.”')">Gạch chân dưới các từ chỉ hoạt động trong câu: “Bé chạy nhảy ngoài sân.”</div>
+                    {% elif session.get('grade', '4') == '3' %}
+                        <!-- Tiếng Việt lớp 3 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc đoạn văn và trả lời câu hỏi: “Vì sao bạn nhỏ thích mùa hè?”')">Đọc đoạn văn và trả lời câu hỏi: “Vì sao bạn nhỏ thích mùa hè?”</div>
+                        <div class="problem-item" onclick="selectProblem('Điền dấu chấm, dấu phẩy vào chỗ thích hợp.')">Điền dấu chấm, dấu phẩy vào chỗ thích hợp.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm từ đồng nghĩa với “vui vẻ”.')">Tìm từ đồng nghĩa với “vui vẻ”.</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt câu với từ “học tập”.')">Đặt câu với từ “học tập”.</div>
+                        <div class="problem-item" onclick="selectProblem('Phân biệt cách dùng “và” và “nhưng” trong câu.')">Phân biệt cách dùng “và” và “nhưng” trong câu.</div>
+                    {% elif session.get('grade', '4') == '4' %}
+                        <!-- Tiếng Việt lớp 4 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc thầm đoạn văn và cho biết ý chính.')">Đọc thầm đoạn văn và cho biết ý chính.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm các từ ghép chỉ màu sắc.')">Tìm các từ ghép chỉ màu sắc.</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt 2 câu có sử dụng dấu hai chấm.')">Đặt 2 câu có sử dụng dấu hai chấm.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn ngắn tả một người bạn.')">Viết đoạn văn ngắn tả một người bạn.</div>
+                        <div class="problem-item" onclick="selectProblem('Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”')">Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”</div>
+                    {% elif session.get('grade', '4') == '5' %}
+                        <!-- Tiếng Việt lớp 5 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc hiểu đoạn thơ và trả lời câu hỏi.')">Đọc hiểu đoạn thơ và trả lời câu hỏi.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm 3 từ láy miêu tả tiếng cười.')">Tìm 3 từ láy miêu tả tiếng cười.</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt câu ghép có sử dụng liên từ “vì... nên”.')">Đặt câu ghép có sử dụng liên từ “vì... nên”.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn kể về một kỷ niệm đáng nhớ.')">Viết đoạn văn kể về một kỷ niệm đáng nhớ.</div>
+                        <div class="problem-item" onclick="selectProblem('Phân tích cấu tạo của câu: “Bầu trời hôm nay thật đẹp.”')">Phân tích cấu tạo của câu: “Bầu trời hôm nay thật đẹp.”</div>
+                    {% elif session.get('grade', '4') == '6' %}
+                        <!-- Văn lớp 6 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc hiểu đoạn thơ “Qua Đèo Ngang” và nêu nội dung chính.')">Đọc hiểu đoạn thơ “Qua Đèo Ngang” và nêu nội dung chính.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm 2 biện pháp tu từ trong đoạn thơ sau và giải thích tác dụng.')">Tìm 2 biện pháp tu từ trong đoạn thơ sau và giải thích tác dụng.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn cảm nhận về nhân vật Dế Mèn trong “Dế Mèn phiêu lưu ký”.')">Viết đoạn văn cảm nhận về nhân vật Dế Mèn trong “Dế Mèn phiêu lưu ký”.</div>
+                        <div class="problem-item" onclick="selectProblem('Phân tích ý nghĩa nhan đề “Bức tranh của em gái tôi”.')">Phân tích ý nghĩa nhan đề “Bức tranh của em gái tôi”.</div>
+                        <div class="problem-item" onclick="selectProblem('Tóm tắt truyện ngắn “Sơn Tinh, Thủy Tinh” bằng 5 câu.')">Tóm tắt truyện ngắn “Sơn Tinh, Thủy Tinh” bằng 5 câu.</div>
+                    {% elif session.get('grade', '4') == '7' %}
+                        <!-- Văn lớp 7 -->
+                        <div class="problem-item" onclick="selectProblem('Đọc hiểu đoạn trích “Sống chết mặc bay” và trả lời câu hỏi.')">Đọc hiểu đoạn trích “Sống chết mặc bay” và trả lời câu hỏi.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm 3 phép tu từ trong đoạn văn và nêu tác dụng.')">Tìm 3 phép tu từ trong đoạn văn và nêu tác dụng.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn nghị luận về tình bạn.')">Viết đoạn văn nghị luận về tình bạn.</div>
+                        <div class="problem-item" onclick="selectProblem('Phân tích hình ảnh người mẹ trong bài thơ “Tiếng gà trưa”.')">Phân tích hình ảnh người mẹ trong bài thơ “Tiếng gà trưa”.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn kể về một trải nghiệm đáng nhớ ở trường.')">Viết đoạn văn kể về một trải nghiệm đáng nhớ ở trường.</div>
+                    {% else %}
+                        <!-- Mặc định hiển thị bài Tiếng Việt lớp 4 nếu không có lớp được chọn -->
+                        <div class="problem-item" onclick="selectProblem('Đọc thầm đoạn văn và cho biết ý chính.')">Đọc thầm đoạn văn và cho biết ý chính.</div>
+                        <div class="problem-item" onclick="selectProblem('Tìm các từ ghép chỉ màu sắc.')">Tìm các từ ghép chỉ màu sắc.</div>
+                        <div class="problem-item" onclick="selectProblem('Đặt 2 câu có sử dụng dấu hai chấm.')">Đặt 2 câu có sử dụng dấu hai chấm.</div>
+                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn ngắn tả một người bạn.')">Viết đoạn văn ngắn tả một người bạn.</div>
+                        <div class="problem-item" onclick="selectProblem('Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”')">Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”</div>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
@@ -828,7 +841,7 @@
                     setTimeout(() => {
                         if (isProcessingRequest) {
                             console.log("File processing taking longer than expected");
-                            showFileProcessingUpdate("Việc xử lý file đang mất nhiều thời gian hơn dự kiến...");
+                            showFileProcessingUpdate("Việc xử lý file đang mất nhiều thởi gian hơn dự kiến...");
                         }
                     }, 10000);
                 }
@@ -1004,7 +1017,7 @@
                 const loadingMessage = configElement.getAttribute('data-loading-message');
                 
                 // Clear input field if we have a response
-                if (!loading && hint && hint !== "Nhập bài toán hoặc tải ảnh để nhận gợi ý!" && hint !== "File đã được tải lên thành công. Đang tự động trích xuất nội dung...") {
+                if (!loading && hint && hint !== "Nhập bài toán, bài tập Tiếng Việt hoặc tải ảnh đề bài để nhận gợi ý nhé! Đừng ngại hỏi bất cứ điều gì, tớ luôn sẵn sàng giúp bạn! 😊" && hint !== "File đã được tải lên thành công. Đang tự động trích xuất nội dung...") {
                     console.log("Clearing input field...");
                     const input = document.getElementById('question-input');
                     if (input) {
