@@ -1,5 +1,6 @@
 File credentials Google Cloud
 *.json
+*.bak
 
 Thư mục môi trường ảo
 myenv/
