@@ -369,45 +369,7 @@
                               </span>
                             </p>
                             {% else %}
-                            <div id="parent-hints-container">
-                              <p class="hint-text" id="parent-hint-text">{% if current_step > 0 %}Gợi ý {{ current_step + 1 }}: {% endif %}{{ hint }}</p>
-                            </div>
-                            <button id="show-more-hint-btn" class="full-width-btn" style="margin-top:10px;display:none;">🔄 Xem mẹo khác cho cha mẹ</button>
-                            <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                              const showMoreBtn = document.getElementById('show-more-hint-btn');
-                              const hintText = document.getElementById('parent-hint-text');
-                              const parentHintsContainer = document.getElementById('parent-hints-container');
-                              let currentQuestion = {{ current_question|tojson }};
-                              if (showMoreBtn && hintText && currentQuestion && currentQuestion.length > 0) {
-                                showMoreBtn.style.display = 'block';
-                                showMoreBtn.onclick = function() {
-                                  showMoreBtn.disabled = true;
-                                  showMoreBtn.textContent = 'Đang lấy mẹo mới...';
-                                  fetch('/kids/hint', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                    body: 'question=' + encodeURIComponent(currentQuestion)
-                                  })
-                                  .then(r => r.json())
-                                  .then(data => {
-                                    if (data.hint) {
-                                      const newHint = document.createElement('p');
-                                      newHint.className = 'hint-text';
-                                      newHint.textContent = 'Mẹo khác: ' + data.hint;
-                                      parentHintsContainer.appendChild(newHint);
-                                    }
-                                    showMoreBtn.disabled = false;
-                                    showMoreBtn.textContent = '🔄 Xem mẹo khác cho cha mẹ';
-                                  })
-                                  .catch(() => {
-                                    showMoreBtn.disabled = false;
-                                    showMoreBtn.textContent = '🔄 Xem mẹo khác cho cha mẹ';
-                                  });
-                                };
-                              }
-                            });
-                            </script>
+                            <p class="hint-text">{% if current_step > 0 %}Gợi ý {{ current_step + 1 }}: {% endif %}{{ hint }}</p>
                             {% endif %}
                         {% endif %}
                     {% endif %}

@@ -316,44 +316,6 @@ function setupEventListeners() {
     console.log("Setting up event listeners");
 }
 
-// --- Gợi ý từng bước bằng AJAX ---
-let currentStep = 1;
-let allHints = [];
-
-function getNextHint() {
-    const questionInput = document.querySelector('textarea[name="question"]');
-    const question = questionInput ? questionInput.value.trim() : '';
-    if (!question) return;
-
-    const btn = document.getElementById('next-hint-btn');
-    if (btn) btn.disabled = true;
-
-    fetch('/get_hint_step', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `question=${encodeURIComponent(question)}&step=${currentStep}`
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.hint) {
-            allHints.push(data.hint);
-            renderHints();
-            currentStep += 1;
-        }
-        if (btn) btn.disabled = false;
-    })
-    .catch(() => { if (btn) btn.disabled = false; });
-}
-
-function renderHints() {
-    const hintBox = document.getElementById('step-hints-box');
-    if (hintBox) {
-        hintBox.innerHTML = allHints.map((h, i) => `<div class='hint-step'>Bước ${i+1}: ${h}</div>`).join('');
-    }
-}
-
-window.getNextHint = getNextHint;
-
 // Add a debug button to force reset state
 function addResetButton() {
     const contentSection = document.querySelector('.content-section');
