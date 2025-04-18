@@ -88,6 +88,10 @@
         <p>Con bạn chỉ cần nhập bài toán vào ô chat, và AI for Kids sẽ đưa ra gợi ý từng bước. Bạn cũng có thể nhấn vào "Mẹo cho cha mẹ" trên màn hình chính để xem cách hỗ trợ con hiệu quả hơn.</p>
 
         <h2>Mẹo giúp con học toán</h2>
+        <p>Bạn có thể nhấn nút dưới đây để nhận mẹo liên quan đến bài toán hiện tại của con (nếu có):</p>
+        <form method="POST" action="{{ url_for('get_parent_tip') }}">
+            <button type="submit" class="btn">Mẹo cho cha mẹ</button>
+        </form>
         <div class="tips-section">
             <ul>
                 <li><strong>Phân số:</strong> Hãy hỏi con: "Nếu con có 3 lát bánh và thêm 2 lát nữa, cả hai đều được cắt thành 7 phần bằng nhau, thì con có tất cả bao nhiêu lát?" Liên hệ với đồ vật thực tế sẽ giúp con hình dung dễ hơn!</li>

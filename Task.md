@@ -23,7 +23,19 @@
    - Đối với mỗi lớp cấp 1 (lớp 1, 2, 3, 4, 5), chọn ra 5 ví dụ bài tập hoặc câu hỏi điển hình về môn Tiếng Việt (như luyện đọc, chính tả, đặt câu, tìm từ, điền từ, v.v.).
    - Đối với mỗi lớp cấp 2 (lớp 6, 7), chọn ra 5 ví dụ bài tập hoặc câu hỏi điển hình về môn Văn (như đọc hiểu, phân tích đoạn thơ/văn, tìm biện pháp tu từ, viết đoạn văn, cảm nhận về nhân vật, v.v.).
 
+6. **Thêm tính năng "Gợi ý kiến thức liên quan"**
+   - Tính năng này sẽ đưa ra các Định nghĩa/Khái niệm liên quan đến bài Toán/Văn mà user đang hỏi, được AI gợi ý.
+   - Cập nhật giao diện và logic trong `app.py` và các tệp HTML liên quan để hiển thị các gợi ý kiến thức.
+
+7. **Tối ưu UI/UX cho responsive**
+   - Cân nhắc sử dụng thư viện mở về UI để làm cho giao diện trông chuyên nghiệp hơn.
+   - Đảm bảo ứng dụng hoạt động tốt trên các thiết bị khác nhau (desktop, tablet, mobile).
+
+8. **Thêm tính năng "Góp ý về sản phẩm"**
+   - Thêm một form hoặc nút để người dùng có thể gửi phản hồi hoặc góp ý về ứng dụng.
+   - Cập nhật giao diện và xử lý backend để thu thập và lưu trữ các góp ý này.
+
 ## Notes
 - Ensure all updates align with the Vietnamese national curriculum for both Math and Vietnamese language subjects.
 - Maintain the user-friendly and engaging interface for kids, using visuals and language that resonate with each age group.
-- Test each feature thoroughly to ensure functionality across different grade levels and subjects. 
+- Test each feature thoroughly to ensure functionality across different grade levels and subjects.
