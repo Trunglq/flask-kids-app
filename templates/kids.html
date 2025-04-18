@@ -20,11 +20,22 @@
         }
         .main-container {
             display: flex;
-            gap: 20px;
+            gap: 24px;
             width: 90%;
             max-width: 1200px;
-            margin: 20px auto;
+            margin: 32px auto 0 auto;
             flex: 1;
+        }
+        .container.py-4 {
+            padding-top: 2rem!important;
+            padding-bottom: 2rem!important;
+        }
+        .row.g-4 {
+            --bs-gutter-x: 2.5rem;
+            --bs-gutter-y: 2.5rem;
+        }
+        .chat-column, .popular-column, .recent-column {
+            margin-bottom: 24px;
         }
         .chat-column {
             background-color: rgba(255, 255, 255, 0.9);
@@ -43,6 +54,79 @@
             flex: 20%;
             max-height: 600px;
             overflow-y: auto;
+        }
+        .input-section {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto 24px auto;
+            padding: 16px 20px 16px 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            position: sticky;
+            bottom: 0;
+            z-index: 20;
+        }
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+            width: 100%;
+        }
+        .input-section textarea, .input-section #question-input {
+            width: 100%;
+            margin-bottom: 0;
+            height: 48px;
+            resize: none;
+            font-size: 18px;
+        }
+        .button-row {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            width: 100%;
+        }
+        .ask-btn, .upload-btn {
+            width: 50%;
+            min-width: 90px;
+            margin: 0;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        @media (max-width: 767px) {
+            .input-section {
+                padding: 12px 6px 12px 6px;
+            }
+            .input-container {
+                flex-direction: column;
+            }
+            .row.g-2 {
+                display: flex;
+                flex-wrap: nowrap !important;
+                margin-left: -4px;
+                margin-right: -4px;
+            }
+            .col-6 {
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
+                padding-left: 4px !important;
+                padding-right: 4px !important;
+                display: flex;
+                align-items: stretch;
+            }
+            .ask-btn, .upload-btn, .btn.ask-btn, .btn.upload-btn, .btn.upload-btn label {
+                width: 100% !important;
+                height: 48px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                margin-bottom: 0 !important;
+                font-size: 18px;
+            }
         }
         h2 {
             font-size: 24px;
@@ -316,264 +400,103 @@
          data-hint="{{ hint }}"
          data-loading-message="{{ loading_message if loading_message else '' }}">
     </div>
-    <div class="main-container">
-        <!-- Cột chính (chat box, 60%) -->
-        <div class="chat-column">
-            <h2>Chào bạn! 👋</h2>
-            <div class="content-section">
-                {% if current_question %}
-                    <div class="problem-statement">
-                        Đề bài: {{ current_question | safe }}
-                    </div>
-                {% endif %}
-                {% if image_path %}
-                    <img src="{{ url_for('serve_tmp_file', filename=image_path.split('tmp/')[1]) }}" alt="Hình minh họa" class="geometry-image">
-                {% endif %}
-                {% if loading %}
-                    <div class="loading-container">
-                        <div class="loading-bar"></div>
-                        <p class="loading-text">{{ loading_message }}</p>
-                    </div>
-                {% else %}
-                    {% if hint.startswith('Tớ không') or hint.startswith('Hãy chọn') or hint.startswith('Bạn chưa') or hint.startswith('Có lỗi') or hint.startswith('Bạn giỏi') or hint.startswith('Lịch sử') or hint.startswith('Ảnh đã') or hint.startswith('File không') or hint.startswith('Nhập bài toán') or hint.startswith('File đã') or hint.startswith('Tớ thấy các bài toán') %}
-                        {% if hint.startswith('Tớ thấy các bài toán') %}
-                            <p class="hint-text">
-                                Tớ thấy các bài toán: 
-                                {% set problems_list = hint.split(': ')[1].split('. ')[0].split(', ') %}
-                                {% for problem in problems_list %}
-                                    <span class="problem-link" onclick="selectProblemFromList('{{ problem.strip() }}')" style="color: #1E88E5; text-decoration: underline; cursor: pointer;">{{ problem.strip() }}{% if not loop.last %}, {% endif %}</span>
-                                {% endfor %}
-                                . Bạn muốn hỏi về bài nào?
-                            </p>
-                        {% else %}
-                            <p class="hint-text">{{ hint }}</p>
-                        {% endif %}
-                        
-                        {% if extraction_status == 'ready' %}
-                        <!-- Extraction is now handled automatically -->
-                        {% endif %}
-                    {% else %}
-                        {% if hint.startswith('Tớ thấy các bài toán') %}
-                            <p class="hint-text">
-                                Tớ thấy các bài toán: 
-                                {% set problems_list = hint.split(': ')[1].split('. ')[0].split(', ') %}
-                                {% for problem in problems_list %}
-                                    <span class="problem-link" onclick="selectProblemFromList('{{ problem.strip() }}')" style="color: #1E88E5; text-decoration: underline; cursor: pointer;">{{ problem.strip() }}{% if not loop.last %}, {% endif %}</span>
-                                {% endfor %}
-                                . Bạn muốn hỏi về bài nào?
-                            </p>
-                        {% else %}
-                            {% if hint == "Nhập bài toán, bài tập Tiếng Việt hoặc tải ảnh đề bài để nhận gợi ý nhé! Đừng ngại hỏi bất cứ điều gì, tớ luôn sẵn sàng giúp bạn! 😊" %}
-                            <p class="hint-text">
-                              <b>Hướng dẫn:</b> Bạn hãy nhập một bài toán Toán hoặc một bài tập Tiếng Việt/Văn vào ô bên dưới, hoặc tải lên ảnh chụp đề bài để nhận gợi ý từng bước phù hợp với lứa tuổi.<br>
-                              <span style="color:#4CAF50;">
-                                Bạn có thể hỏi về phép tính, bài toán có lời văn, hoặc bài tập đọc hiểu, luyện từ và câu, tập làm văn... Nếu tải ảnh, hệ thống sẽ tự động trích xuất và gợi ý cho bạn.
-                              </span>
-                            </p>
-                            {% else %}
-                            <p class="hint-text">{% if current_step > 0 %}Gợi ý {{ current_step + 1 }}: {% endif %}{{ hint }}</p>
-                            {% endif %}
-                        {% endif %}
-                    {% endif %}
-                {% endif %}
-                <!-- Khu vực danh sách bài toán -->
-                {% if extracted_problems and not hint.startswith('Tớ thấy các bài toán') %}
-                    <div class="problem-list-container">
-                        {% set problems_text = extracted_problems %}
-                        {% set problems_list = problems_text.split(': ')[1].split('. ')[0].split(', ') %}
-                        Tớ thấy các bài toán: 
-                        {% for problem in problems_list %}
-                            <span class="problem-link" onclick="selectProblemFromList('{{ problem.strip() }}')" style="color: #1E88E5; text-decoration: underline; cursor: pointer;">{{ problem.strip() }}{% if not loop.last %}, {% endif %}</span>
-                        {% endfor %}
-                        . Bạn muốn hỏi về bài nào?
-                    </div>
-                {% endif %}
-            </div>
-            {% if hint != "Nhập bài toán, bài tập Tiếng Việt hoặc tải ảnh đề bài để nhận gợi ý nhé! Đừng ngại hỏi bất cứ điều gì, tớ luôn sẵn sàng giúp bạn! 😊" and hint != "File đã được tải lên thành công. Đang tự động trích xuất nội dung..." and not loading %}
-                <form method="POST" id="action-form">
-                    <div class="button-container">
-                        <button type="submit" name="action" value="explain_more" class="full-width-btn explain-more-btn">
-                            <span>📖</span> Giải thích thêm
-                        </button>
-                        <button type="submit" name="action" value="got_it" class="full-width-btn got-it-btn">
-                            <span>😊</span> Tớ hiểu rồi!
-                        </button>
-                    </div>
-                    <a class="tip-link" onclick="showParentTip()">Mẹo cho cha mẹ</a>
-                    <a href="/api_usage" class="usage-link">Xem chi phí token</a>
-                </form>
-            {% endif %}
-            <!-- Khu vực file đính kèm -->
-            {% if attached_file %}
-                <div class="attachment-area">
-                    <a href="{{ url_for('serve_tmp_file', filename=attached_file.split('/')[-1]) }}" target="_blank" class="file-link">
-                        Xem file đính kèm: {{ attached_file.split('\\')[-1] if '\\' in attached_file else attached_file.split('/')[-1] }}
-                    </a>
-                </div>
-            {% endif %}
-        </div>
-
-        <!-- Cột danh sách bài toán phổ biến (20%) -->
-        <div class="popular-column">
-            <h3>
-                {% if session.get('subject', 'math') == 'math' %}
-                    Những bài toán phổ biến lớp {{ session.get('grade', '4') }} 📚
-                {% else %}
-                    Những bài Tiếng Việt/Văn phổ biến lớp {{ session.get('grade', '4') }} 📖
-                {% endif %}
-            </h3>
-            <div class="problem-list">
-                {% if session.get('subject', 'math') == 'math' %}
-                    {% if session.get('grade', '4') == '1' %}
-                        <!-- Bài toán lớp 1 -->
-                        <div class="problem-item" onclick="selectProblem('Tính: 5 + 3')">Tính: 5 + 3</div>
-                        <div class="problem-item" onclick="selectProblem('Tính: 9 - 4')">Tính: 9 - 4</div>
-                        <div class="problem-item" onclick="selectProblem('Lan có 6 quả táo, mẹ cho thêm 2 quả. Hỏi Lan có bao nhiêu quả táo?')">Lan có 6 quả táo, mẹ cho thêm 2 quả. Hỏi Lan có bao nhiêu quả táo?</div>
-                        <div class="problem-item" onclick="selectProblem('An có 7 cái kẹo, An cho bạn Mai 3 cái. Hỏi An còn lại bao nhiêu cái kẹo?')">An có 7 cái kẹo, An cho bạn Mai 3 cái. Hỏi An còn lại bao nhiêu cái kẹo?</div>
-                        <div class="problem-item" onclick="selectProblem('Vẽ 1 hình tam giác, 1 hình tròn và 1 hình vuông')">Vẽ 1 hình tam giác, 1 hình tròn và 1 hình vuông</div>
-                    {% elif session.get('grade', '4') == '2' %}
-                        <!-- Bài toán lớp 2 -->
-                        <div class="problem-item" onclick="selectProblem('Thực hiện phép tính: 52 + 18 - 33')">Thực hiện phép tính: 52 + 18 - 33</div>
-                        <div class="problem-item" onclick="selectProblem('Điền số thích hợp vào chỗ chấm: 9 + … - … = 15')">Điền số thích hợp vào chỗ chấm: 9 + … - … = 15</div>
-                        <div class="problem-item" onclick="selectProblem('Tìm x biết: x - 29 = 12')">Tìm x biết: x - 29 = 12</div>
-                        <div class="problem-item" onclick="selectProblem('Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15')">Tìm số lớn nhất có hai chữ số mà tổng hai chữ số bằng 15</div>
-                        <div class="problem-item" onclick="selectProblem('Đặt tính rồi tính: 72 - 29')">Đặt tính rồi tính: 72 - 29</div>
-                    {% elif session.get('grade', '4') == '3' %}
-                        <!-- Bài toán lớp 3 -->
-                        <div class="problem-item" onclick="selectProblem('Tính: 245 + 378')">Tính: 245 + 378</div>
-                        <div class="problem-item" onclick="selectProblem('Tính: 486 ÷ 2')">Tính: 486 ÷ 2</div>
-                        <div class="problem-item" onclick="selectProblem('Tính chu vi hình tam giác có 3 cạnh lần lượt là 5 cm, 7 cm và 8 cm.')">Tính chu vi hình tam giác có 3 cạnh lần lượt là 5 cm, 7 cm và 8 cm.</div>
-                        <div class="problem-item" onclick="selectProblem('Một cửa hàng có 120 quả táo, bán được 45 quả. Hỏi còn lại bao nhiêu quả?')">Một cửa hàng có 120 quả táo, bán được 45 quả. Hỏi còn lại bao nhiêu quả?</div>
-                        <div class="problem-item" onclick="selectProblem('Thực hiện phép tính: 7 × 8')">Thực hiện phép tính: 7 × 8</div>
-                    {% elif session.get('grade', '4') == '4' %}
-                        <!-- Bài toán lớp 4 -->
-                        <div class="problem-item" onclick="selectProblem('Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.')">Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.</div>
-                        <div class="problem-item" onclick="selectProblem('Cộng hai phân số 3/7 và 2/7.')">Cộng hai phân số 3/7 và 2/7.</div>
-                        <div class="problem-item" onclick="selectProblem('Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?')">Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?</div>
-                        <div class="problem-item" onclick="selectProblem('Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?')">Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?</div>
-                        <div class="problem-item" onclick="selectProblem('Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?')">Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?</div>
-                    {% elif session.get('grade', '4') == '5' %}
-                        <!-- Bài toán lớp 5 -->
-                        <div class="problem-item" onclick="selectProblem('Tính diện tích hình thang có đáy lớn 12 cm, đáy bé 8 cm, chiều cao 5 cm.')">Tính diện tích hình thang có đáy lớn 12 cm, đáy bé 8 cm, chiều cao 5 cm.</div>
-                        <div class="problem-item" onclick="selectProblem('Một bể nước có thể tích 120 lít, đã lấy ra 35 lít nước. Hỏi còn lại bao nhiêu lít nước?')">Một bể nước có thể tích 120 lít, đã lấy ra 35 lít nước. Hỏi còn lại bao nhiêu lít nước?</div>
-                        <div class="problem-item" onclick="selectProblem('Tìm x biết: x × 7 = 56')">Tìm x biết: x × 7 = 56</div>
-                        <div class="problem-item" onclick="selectProblem('Một cửa hàng bán 15 kg gạo với giá 12.000 đồng/kg. Hỏi tổng số tiền bán được?')">Một cửa hàng bán 15 kg gạo với giá 12.000 đồng/kg. Hỏi tổng số tiền bán được?</div>
-                        <div class="problem-item" onclick="selectProblem('Một hình chữ nhật có chu vi 36 cm, chiều dài hơn chiều rộng 4 cm. Tính diện tích hình chữ nhật đó.')">Một hình chữ nhật có chu vi 36 cm, chiều dài hơn chiều rộng 4 cm. Tính diện tích hình chữ nhật đó.</div>
-                    {% elif session.get('grade', '4') == '6' %}
-                        <!-- Bài toán lớp 6 -->
-                        <div class="problem-item" onclick="selectProblem('Tính giá trị biểu thức: -15 + 7')">Tính giá trị biểu thức: -15 + 7</div>
-                        <div class="problem-item" onclick="selectProblem('Giải phương trình: 2x + 3 = 11')">Giải phương trình: 2x + 3 = 11</div>
-                        <div class="problem-item" onclick="selectProblem('Tính diện tích hình tam giác có đáy 8 cm và chiều cao 5 cm.')">Tính diện tích hình tam giác có đáy 8 cm và chiều cao 5 cm.</div>
-                        <div class="problem-item" onclick="selectProblem('Viết dưới dạng số thập phân: 3/4')">Viết dưới dạng số thập phân: 3/4</div>
-                        <div class="problem-item" onclick="selectProblem('Bảng sau ghi điểm toán của 40 học sinh: Điểm 5: 4 học sinh, điểm 6: 8 học sinh, điểm 7: 10 học sinh, điểm 8: 12 học sinh, điểm 9: 6 học sinh. Tính điểm trung bình của 40 học sinh.')">Tính điểm trung bình của 40 học sinh trong bảng điểm toán</div>
-                    {% elif session.get('grade', '4') == '7' %}
-                        <!-- Bài toán lớp 7 -->
-                        <div class="problem-item" onclick="selectProblem('Tính giá trị biểu thức: 3/4 + 5/6 - 1/3.')">Tính giá trị biểu thức: 3/4 + 5/6 - 1/3.</div>
-                        <div class="problem-item" onclick="selectProblem('Tìm x trong tỉ lệ thức: 2/3 = x/9.')">Tìm x trong tỉ lệ thức: 2/3 = x/9.</div>
-                        <div class="problem-item" onclick="selectProblem('Rút gọn: (2x^2 - 3x + 5) + (x^2 + 4x - 1).')">Rút gọn: (2x^2 - 3x + 5) + (x^2 + 4x - 1).</div>
-                        <div class="problem-item" onclick="selectProblem('Cho tam giác ABC có góc A = 50°, góc B = 60°. Tính góc C.')">Cho tam giác ABC có góc A = 50°, góc B = 60°. Tính góc C.</div>
-                        <div class="problem-item" onclick="selectProblem('Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.')">Tính thể tích hình lăng trụ đứng tam giác có diện tích đáy 12 cm^2 và chiều cao 5 cm.</div>
-                    {% else %}
-                        <!-- Mặc định hiển thị bài toán lớp 4 nếu không có lớp được chọn -->
-                        <div class="problem-item" onclick="selectProblem('Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.')">Tính diện tích hình chữ nhật có chiều dài 10 cm và chiều rộng 6 cm.</div>
-                        <div class="problem-item" onclick="selectProblem('Cộng hai phân số 3/7 và 2/7.')">Cộng hai phân số 3/7 và 2/7.</div>
-                        <div class="problem-item" onclick="selectProblem('Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?')">Chia 24 viên kẹo cho hai bạn An và Bình theo tỉ số 3:5. Hỏi mỗi bạn được bao nhiêu viên kẹo?</div>
-                        <div class="problem-item" onclick="selectProblem('Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?')">Một ô tô đi với vận tốc 60 km/giờ trong 1,5 giờ. Hỏi ô tô đi được bao nhiêu km?</div>
-                        <div class="problem-item" onclick="selectProblem('Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?')">Lan có 40 quả táo, chia cho Minh và Hoa theo tỉ số 3:2. Hỏi mỗi bạn được bao nhiêu quả táo?</div>
-                    {% endif %}
-                {% else %}
-                    {% if session.get('grade', '4') == '1' %}
-                        <!-- Tiếng Việt lớp 1 -->
-                        <div class="problem-item" onclick="selectProblem('Đọc to đoạn văn sau: “Bé Na đi học về, vui vẻ kể chuyện cho mẹ nghe.”')">Đọc to đoạn văn sau: “Bé Na đi học về, vui vẻ kể chuyện cho mẹ nghe.”</div>
-                        <div class="problem-item" onclick="selectProblem('Điền chữ cái còn thiếu: _ả, _ải, _ay, _an, _ang.')">Điền chữ cái còn thiếu: _ả, _ải, _ay, _an, _ang.</div>
-                        <div class="problem-item" onclick="selectProblem('Tìm các từ có vần “an”.')">Tìm các từ có vần “an”.</div>
-                        <div class="problem-item" onclick="selectProblem('Đặt câu với từ “bạn”.')">Đặt câu với từ “bạn”.</div>
-                        <div class="problem-item" onclick="selectProblem('Khoanh tròn vào tiếng có âm “ch”: chim, cá, chó, mèo.')">Khoanh tròn vào tiếng có âm “ch”: chim, cá, chó, mèo.</div>
-                    {% elif session.get('grade', '4') == '2' %}
-                        <!-- Tiếng Việt lớp 2 -->
-                        <div class="problem-item" onclick="selectProblem('Đọc đoạn văn và trả lời: “Nam thích giúp đỡ bạn bè. Em hãy kể một việc làm tốt của Nam.”')">Đọc đoạn văn và trả lời: “Nam thích giúp đỡ bạn bè. Em hãy kể một việc làm tốt của Nam.”</div>
-                        <div class="problem-item" onclick="selectProblem('Điền vào chỗ trống: “Con ... đang bay trên bầu trời.”')">Điền vào chỗ trống: “Con ... đang bay trên bầu trời.”</div>
-                        <div class="problem-item" onclick="selectProblem('Tìm từ trái nghĩa với “cao”.')">Tìm từ trái nghĩa với “cao”.</div>
-                        <div class="problem-item" onclick="selectProblem('Đặt câu hỏi cho câu: “Lan đang học bài.”')">Đặt câu hỏi cho câu: “Lan đang học bài.”</div>
-                        <div class="problem-item" onclick="selectProblem('Gạch chân dưới các từ chỉ hoạt động trong câu: “Bé chạy nhảy ngoài sân.”')">Gạch chân dưới các từ chỉ hoạt động trong câu: “Bé chạy nhảy ngoài sân.”</div>
-                    {% elif session.get('grade', '4') == '3' %}
-                        <!-- Tiếng Việt lớp 3 -->
-                        <div class="problem-item" onclick="selectProblem('Đọc đoạn văn và trả lời câu hỏi: “Vì sao bạn nhỏ thích mùa hè?”')">Đọc đoạn văn và trả lời câu hỏi: “Vì sao bạn nhỏ thích mùa hè?”</div>
-                        <div class="problem-item" onclick="selectProblem('Điền dấu chấm, dấu phẩy vào chỗ thích hợp.')">Điền dấu chấm, dấu phẩy vào chỗ thích hợp.</div>
-                        <div class="problem-item" onclick="selectProblem('Tìm từ đồng nghĩa với “vui vẻ”.')">Tìm từ đồng nghĩa với “vui vẻ”.</div>
-                        <div class="problem-item" onclick="selectProblem('Đặt câu với từ “học tập”.')">Đặt câu với từ “học tập”.</div>
-                        <div class="problem-item" onclick="selectProblem('Phân biệt cách dùng “và” và “nhưng” trong câu.')">Phân biệt cách dùng “và” và “nhưng” trong câu.</div>
-                    {% elif session.get('grade', '4') == '4' %}
-                        <!-- Tiếng Việt lớp 4 -->
-                        <div class="problem-item" onclick="selectProblem('Đọc thầm đoạn văn và cho biết ý chính.')">Đọc thầm đoạn văn và cho biết ý chính.</div>
-                        <div class="problem-item" onclick="selectProblem('Tìm các từ ghép chỉ màu sắc.')">Tìm các từ ghép chỉ màu sắc.</div>
-                        <div class="problem-item" onclick="selectProblem('Đặt 2 câu có sử dụng dấu hai chấm.')">Đặt 2 câu có sử dụng dấu hai chấm.</div>
-                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn ngắn tả một người bạn.')">Viết đoạn văn ngắn tả một người bạn.</div>
-                        <div class="problem-item" onclick="selectProblem('Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”')">Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”</div>
-                    {% elif session.get('grade', '4') == '5' %}
-                        <!-- Tiếng Việt lớp 5 -->
-                        <div class="problem-item" onclick="selectProblem('Đọc hiểu đoạn thơ và trả lời câu hỏi.')">Đọc hiểu đoạn thơ và trả lời câu hỏi.</div>
-                        <div class="problem-item" onclick="selectProblem('Tìm 3 từ láy miêu tả tiếng cười.')">Tìm 3 từ láy miêu tả tiếng cười.</div>
-                        <div class="problem-item" onclick="selectProblem('Đặt câu ghép có sử dụng liên từ “vì... nên”.')">Đặt câu ghép có sử dụng liên từ “vì... nên”.</div>
-                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn kể về một kỷ niệm đáng nhớ.')">Viết đoạn văn kể về một kỷ niệm đáng nhớ.</div>
-                        <div class="problem-item" onclick="selectProblem('Phân tích cấu tạo của câu: “Bầu trời hôm nay thật đẹp.”')">Phân tích cấu tạo của câu: “Bầu trời hôm nay thật đẹp.”</div>
-                    {% elif session.get('grade', '4') == '6' %}
-                        <!-- Văn lớp 6 -->
-                        <div class="problem-item" onclick="selectProblem('Đọc hiểu đoạn thơ “Qua Đèo Ngang” và nêu nội dung chính.')">Đọc hiểu đoạn thơ “Qua Đèo Ngang” và nêu nội dung chính.</div>
-                        <div class="problem-item" onclick="selectProblem('Tìm 2 biện pháp tu từ trong đoạn thơ sau và giải thích tác dụng.')">Tìm 2 biện pháp tu từ trong đoạn thơ sau và giải thích tác dụng.</div>
-                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn cảm nhận về nhân vật Dế Mèn trong “Dế Mèn phiêu lưu ký”.')">Viết đoạn văn cảm nhận về nhân vật Dế Mèn trong “Dế Mèn phiêu lưu ký”.</div>
-                        <div class="problem-item" onclick="selectProblem('Phân tích ý nghĩa nhan đề “Bức tranh của em gái tôi”.')">Phân tích ý nghĩa nhan đề “Bức tranh của em gái tôi”.</div>
-                        <div class="problem-item" onclick="selectProblem('Tóm tắt truyện ngắn “Sơn Tinh, Thủy Tinh” bằng 5 câu.')">Tóm tắt truyện ngắn “Sơn Tinh, Thủy Tinh” bằng 5 câu.</div>
-                    {% elif session.get('grade', '4') == '7' %}
-                        <!-- Văn lớp 7 -->
-                        <div class="problem-item" onclick="selectProblem('Đọc hiểu đoạn trích “Sống chết mặc bay” và trả lời câu hỏi.')">Đọc hiểu đoạn trích “Sống chết mặc bay” và trả lời câu hỏi.</div>
-                        <div class="problem-item" onclick="selectProblem('Tìm 3 phép tu từ trong đoạn văn và nêu tác dụng.')">Tìm 3 phép tu từ trong đoạn văn và nêu tác dụng.</div>
-                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn nghị luận về tình bạn.')">Viết đoạn văn nghị luận về tình bạn.</div>
-                        <div class="problem-item" onclick="selectProblem('Phân tích hình ảnh người mẹ trong bài thơ “Tiếng gà trưa”.')">Phân tích hình ảnh người mẹ trong bài thơ “Tiếng gà trưa”.</div>
-                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn kể về một trải nghiệm đáng nhớ ở trường.')">Viết đoạn văn kể về một trải nghiệm đáng nhớ ở trường.</div>
-                    {% else %}
-                        <!-- Mặc định hiển thị bài Tiếng Việt lớp 4 nếu không có lớp được chọn -->
-                        <div class="problem-item" onclick="selectProblem('Đọc thầm đoạn văn và cho biết ý chính.')">Đọc thầm đoạn văn và cho biết ý chính.</div>
-                        <div class="problem-item" onclick="selectProblem('Tìm các từ ghép chỉ màu sắc.')">Tìm các từ ghép chỉ màu sắc.</div>
-                        <div class="problem-item" onclick="selectProblem('Đặt 2 câu có sử dụng dấu hai chấm.')">Đặt 2 câu có sử dụng dấu hai chấm.</div>
-                        <div class="problem-item" onclick="selectProblem('Viết đoạn văn ngắn tả một người bạn.')">Viết đoạn văn ngắn tả một người bạn.</div>
-                        <div class="problem-item" onclick="selectProblem('Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”')">Điền từ thích hợp vào chỗ trống: “Mẹ ... đi chợ mua rau.”</div>
-                    {% endif %}
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Cột bài toán gần đây (20%) -->
-        <div class="recent-column">
-            <h3>Bài toán gần đây ⏳</h3>
-            {% if recent_questions %}
-                <div class="recent-problems">
-                    {% for question in recent_questions %}
-                        <div class="recent-item" onclick="selectProblem('{{ question | e }}')">
-                            {{ question }}
+    <div class="container py-4">
+        <div class="row g-4">
+            <!-- Chat Column -->
+            <div class="col-lg-7 col-md-12">
+                <div class="chat-column bg-white rounded-4 shadow-sm p-4 mb-4">
+                    <h2 class="text-primary mb-3">Chào bạn! 👋</h2>
+                    <div class="content-section">
+                        {% if current_question %}
+                        <div class="problem-statement alert alert-info fw-bold mb-3">
+                            Đề bài: {{ current_question | safe }}
                         </div>
-                    {% endfor %}
+                        {% endif %}
+                        {% if image_path %}
+                        <img src="{{ url_for('serve_tmp_file', filename=image_path.split('tmp/')[1]) }}" alt="Hình minh họa" class="img-fluid rounded mb-3">
+                        {% endif %}
+                        {% if loading %}
+                        <div class="loading-container text-center my-3">
+                            <div class="spinner-border text-warning mb-2" role="status"><span class="visually-hidden">Loading...</span></div>
+                            <div class="loading-text text-warning">{{ loading_message }}</div>
+                        </div>
+                        {% else %}
+                        <p class="hint-text">{{ hint }}</p>
+                        {% endif %}
+                        {% if extracted_problems and not hint.startswith('Tớ thấy các bài toán') %}
+                        <div class="problem-list-container">
+                            {% set problems_text = extracted_problems %}
+                            {% set problems_list = problems_text.split(': ')[1].split('. ')[0].split(', ') %}
+                            Tớ thấy các bài toán:
+                            {% for problem in problems_list %}
+                                <span class="problem-link" onclick="selectProblemFromList('{{ problem.strip() }}')" style="color: #1E88E5; text-decoration: underline; cursor: pointer;">{{ problem.strip() }}{% if not loop.last %}, {% endif %}</span>
+                            {% endfor %}
+                            . Bạn muốn hỏi về bài nào?
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if hint != "Nhập bài toán, bài tập Tiếng Việt hoặc tải ảnh đề bài để nhận gợi ý nhé! Đừng ngại hỏi bất cứ điều gì, tớ luôn sẵn sàng giúp bạn! 😊" and hint != "File đã được tải lên thành công. Đang tự động trích xuất nội dung..." and not loading %}
+                    <form method="POST" id="action-form">
+                        <div class="button-container">
+                            <button type="submit" name="action" value="explain_more" class="full-width-btn explain-more-btn">
+                                <span>📖</span> Gợi ý thêm
+                            </button>
+                            <button type="submit" name="action" value="got_it" class="full-width-btn got-it-btn">
+                                <span>😊</span> Tớ hiểu rồi!
+                            </button>
+                        </div>
+                        <a class="tip-link" onclick="showParentTip()">Hướng dẫn phụ huynh</a>
+                        <a href="/api_usage" class="usage-link">Xem chi phí token</a>
+                    </form>
+                    {% endif %}
                 </div>
-            {% else %}
-                <p>Chưa có bài toán nào được hỏi gần đây.</p>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Ô input box ở dưới cùng -->
-    <div class="input-section">
-        <form method="POST" id="main-form" enctype="multipart/form-data">
-            <div class="input-container">
-                <textarea name="question" id="question-input" placeholder="Nhập câu hỏi (ví dụ: Câu 4)"></textarea>
-                <button type="submit" name="action" value="ask" class="ask-btn">
-                    <span>❓</span> Hỏi
-                </button>
-                <label class="upload-btn">
-                    <span>📎</span> Đính kèm ảnh
-                    <input type="file" name="file" id="file-input" class="file-input" accept="image/png,image/jpeg,image/jpg">
-                </label>
             </div>
-        </form>
+            <!-- Popular Problems Column -->
+            <div class="col-lg-3 col-md-6">
+                <div class="popular-column bg-white rounded-4 shadow-sm p-4 mb-4">
+                    <h3 class="text-success mb-3">
+                        {% if session.get('subject', 'math') == 'math' %}
+                        Những bài toán phổ biến lớp {{ session.get('grade', '4') }} 📚
+                        {% else %}
+                        Những bài Tiếng Việt/Văn phổ biến lớp {{ session.get('grade', '4') }} 📖
+                        {% endif %}
+                    </h3>
+                    <div class="problem-list list-group">
+                        {% for problem in ['Tính: 5 + 3', 'Tính: 9 - 4', 'Lan có 6 quả táo, mẹ cho thêm 2 quả. Hỏi Lan có bao nhiêu quả táo?'] %}
+                        <button type="button" class="list-group-item list-group-item-action problem-item mb-2" id="popular-problem-{{ loop.index }}">{{ problem }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <!-- Recent Problems Column -->
+            <div class="col-lg-2 col-md-6">
+                <div class="recent-column bg-white rounded-4 shadow-sm p-4 mb-4">
+                    <h3 class="mb-3">Bài toán gần đây ⏳</h3>
+                    <div class="recent-problems list-group">
+                        {% for item in session.get('recent_questions', []) %}
+                        <div class="list-group-item recent-item mb-2">{{ item }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Input Section -->
+        <div class="input-section mt-4 bg-white rounded-4 shadow-sm p-4">
+            <form method="POST" id="main-form" enctype="multipart/form-data" class="input-container">
+                <textarea name="question" id="question-input" class="form-control mb-3" rows="1" placeholder="Nhập bài toán hoặc bài tập tiếng Việt..."></textarea>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <button type="submit" name="action" value="ask" class="btn btn-primary w-100 ask-btn"><span>💬</span> Hỏi AI</button>
+                    </div>
+                    <div class="col-6">
+                        <label class="btn btn-warning w-100 upload-btn mb-0">
+                            <span>📷</span> Ảnh
+                            <input type="file" name="image" class="file-input" onchange="this.form.submit();">
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Modal pop-up cho mẹo -->
@@ -1011,6 +934,17 @@
             console.log("DOM fully loaded.");
             makeProblemsClickable();
             
+            // Ensure selectProblem works with Bootstrap button markup
+            const popularButtons = document.querySelectorAll('.problem-list .problem-item');
+            popularButtons.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const problem = btn.textContent.trim();
+                    if (typeof selectProblem === 'function') {
+                        selectProblem(problem);
+                    }
+                });
+            });
+            
             // Handle Jinja variables safely
             const configElement = document.getElementById('app-config');
             if (configElement) {
@@ -1173,6 +1107,6 @@
     </script>
     <script src="{{ url_for('static', filename='js/kids.js') }}"></script>
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-qQ2v6Qq6Q6Q2QqQ2QqQ2QqQ2QqQ2QqQ2QqQ2QqQ2QqQ2QqQ2QqQ2" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-qQ2v6Qq6Q6Q2QqQ2QqQ2QqQ2QqQ2QqQ2" crossorigin="anonymous"></script>
 </body>
 </html>
