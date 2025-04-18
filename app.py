@@ -47,7 +47,6 @@ except Exception as e:
     app.config['UPLOAD_FOLDER'] = '/tmp'
 
 # Dictionary toàn cục để lưu trữ hint_cache và extracted_content
-HINT_CACHE = {}
 EXTRACTED_CONTENT = {}
 
 last_request_time = 0
@@ -272,9 +271,9 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
     # Cải thiện: Thử lấy từ cache trước nếu là vấn đề văn bản
     if problem and not file_path:
         cache_key = f"{problem}_grade_{grade}_subject_{subject}"
-        if cache_key in HINT_CACHE:
+        if cache_key in EXTRACTED_CONTENT:
             logging.info(f"Using cached hints for: {problem}")
-            return HINT_CACHE[cache_key]
+            return EXTRACTED_CONTENT[cache_key]
     
     url = "https://api.x.ai/v1/chat/completions"
     headers = {
@@ -456,7 +455,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             Chương trình toán lớp 2 ở Việt Nam bao gồm:
             - Số học: Đếm, đọc, viết số đến 1000; cộng, trừ số trong phạm vi 1000 (ví dụ: 45 + 27, 83 - 19); nhân, chia số nhỏ (bảng cửu chương 2, 3, 4, 5).
             - Đo lường: Đo độ dài (cm, m), khối lượng (kg), thời gian (giờ, phút); xem đồng hồ (giờ đúng, giờ rưỡi).
-            - Hình học: Nhận biết hình vuông, hình chữ nhật, hình tam giác, hình tròn.
+            - Hình học: Nhận biết hình (vuông, chữ nhật, tam giác); tính chu vi hình tam giác, hình vuông, hình chữ nhật.
             - Bài toán có lời văn: Bài toán đơn giản về cộng, trừ, nhân, chia (ví dụ: "Lan có 5 quả táo, mẹ cho thêm 3 quả, hỏi Lan có bao nhiêu quả?")
 
             Cung cấp 3 gợi ý từng bước để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 2:
@@ -502,7 +501,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
 
             Cung cấp 5 gợi ý từng bước để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 4:
             - Bước 1 phải tập trung vào việc giải thích khái niệm hoặc công thức liên quan đến bài toán, dùng ví dụ gần gũi để bạn dễ hình dung (ví dụ: "Diện tích giống như số ô vuông nhỏ bên trong hình chữ nhật, bạn có biết không?").
-            - Từ bước 2 trở đi, chia bài toán thành các bước nhỏ, dễ quản lý, mỗi bước xây dựng dựa trên bước trước.
+            - Từ bước 2 trở đi: Chia bài toán thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
             - Đặt câu hỏi gợi mở để khuyến khích bạn suy nghĩ (ví dụ: "Bạn thử cộng các số hàng chục trước xem được bao nhiêu?").
             - Sử dụng ngôn ngữ đơn giản, rõ ràng, tránh từ ngữ phức tạp hoặc ví dụ không liên quan (ví dụ: không dùng kẹo để giải thích vận tốc).
             - Không đưa ra đáp án cuối cùng.
@@ -738,10 +737,10 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                     # Lưu cache kết quả khi thành công
                     if problem and not file_path:
                         cache_key = f"{problem}_grade_{grade}_subject_{subject}"
-                        HINT_CACHE[cache_key] = lines[:(3 if grade == "2" else 5)]
-                        if len(HINT_CACHE) > 100:  # Tăng kích thước cache
-                            oldest_key = next(iter(HINT_CACHE))
-                            HINT_CACHE.pop(oldest_key)
+                        EXTRACTED_CONTENT[cache_key] = lines[:(3 if grade == "2" else 5)]
+                        if len(EXTRACTED_CONTENT) > 100:  # Tăng kích thước cache
+                            oldest_key = next(iter(EXTRACTED_CONTENT))
+                            EXTRACTED_CONTENT.pop(oldest_key)
                         logging.info(f"Cached result for problem: {problem}")
                     
                     usage = data.get("usage", {})
@@ -824,10 +823,10 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                     # Lưu cache kết quả khi thành công
                     if problem and not file_path:
                         cache_key = f"{problem}_grade_{grade}_subject_{subject}"
-                        HINT_CACHE[cache_key] = lines[:(3 if grade == "2" else 5)]
-                        if len(HINT_CACHE) > 100:  # Tăng kích thước cache
-                            oldest_key = next(iter(HINT_CACHE))
-                            HINT_CACHE.pop(oldest_key)
+                        EXTRACTED_CONTENT[cache_key] = lines[:(3 if grade == "2" else 5)]
+                        if len(EXTRACTED_CONTENT) > 100:  # Tăng kích thước cache
+                            oldest_key = next(iter(EXTRACTED_CONTENT))
+                            EXTRACTED_CONTENT.pop(oldest_key)
                         logging.info(f"Cached result for problem: {problem}")
                     
                     usage = data.get("usage", {})
@@ -895,12 +894,12 @@ def role():
 @app.route("/kids", methods=["GET", "POST"])
 def kids():
     logging.info(f"Current session['grade']: {session.get('grade', '4')}")
-    if "current_step" not in session:
-        session["current_step"] = 0
+    if "current_hint_index" not in session:
+        session["current_hint_index"] = 0
+    if "hint_cache" not in session:
+        session["hint_cache"] = []
     if "current_question" not in session:
         session["current_question"] = ""
-    if "cache_key" not in session:
-        session["cache_key"] = None
     if "recent_questions" not in session:
         session["recent_questions"] = []
     if "attached_file" not in session:
@@ -912,8 +911,8 @@ def kids():
 
     if request.method == "GET":
         session["current_question"] = ""
-        session["current_step"] = 0
-        session["cache_key"] = None
+        session["current_hint_index"] = 0
+        session["hint_cache"] = []
         session["image_path"] = None
         session["attached_file"] = None
         session["recent_questions"] = []
@@ -940,8 +939,8 @@ def kids():
 
         if action == "attach_file" and file:
             session["current_question"] = ""
-            session["current_step"] = 0
-            session["cache_key"] = None
+            session["current_hint_index"] = 0
+            session["hint_cache"] = []
             session["image_path"] = None
             session["recent_questions"] = []
             session["extracted_problems"] = None
@@ -996,7 +995,7 @@ def kids():
                                 problems_str = ", ".join(problems)
                                 problem_list = f"Tớ thấy các bài toán: {problems_str}. Bạn muốn hỏi về bài nào?"
                                 
-                                logging.info(f"Immediately generated problem list: {problem_list}")
+                                logging.info(f"Generated problem list: {problem_list}")
                                 session["extracted_problems"] = problem_list
                                 loading = False
                                 hint = problem_list
@@ -1020,7 +1019,7 @@ def kids():
             # Prepare response
             response = make_response(render_template("kids.html", hint=hint, tip=tip, loading=loading, 
                                                current_question=session["current_question"], 
-                                               current_step=session["current_step"],
+                                               current_hint_index=session["current_hint_index"],
                                                recent_questions=session["recent_questions"], 
                                                image_path=session.get("image_path"),
                                                attached_file=session.get("attached_file"),
@@ -1044,7 +1043,7 @@ def kids():
                 session.modified = True
                 return render_template("kids.html", hint=hint, tip=tip, loading=loading, 
                                      current_question=session["current_question"], 
-                                     current_step=session["current_step"],
+                                     current_hint_index=session["current_hint_index"],
                                      recent_questions=session["recent_questions"], 
                                      image_path=session.get("image_path"),
                                      attached_file=session.get("attached_file"),
@@ -1063,12 +1062,11 @@ def kids():
                 session.modified = True
                 return render_template("kids.html", hint=hint, tip=tip, loading=loading, 
                                      current_question=session["current_question"], 
-                                     current_step=session["current_step"],
+                                     current_hint_index=session["current_hint_index"],
                                      recent_questions=session["recent_questions"], 
                                      image_path=session.get("image_path"),
                                      attached_file=session.get("attached_file"),
                                      extracted_problems=session.get("extracted_problems"),
-                                     extraction_status=session.get("extraction_status", ""),
                                      loading_message=loading_message,
                                      timestamp=int(time()))
             
@@ -1081,7 +1079,7 @@ def kids():
             # First return response to update UI, then perform extraction
             response = make_response(render_template("kids.html", hint=hint, tip=tip, loading=loading, 
                                                current_question=session["current_question"], 
-                                               current_step=session["current_step"],
+                                               current_hint_index=session["current_hint_index"],
                                                recent_questions=session["recent_questions"], 
                                                image_path=session.get("image_path"),
                                                attached_file=session.get("attached_file"),
@@ -1152,7 +1150,6 @@ def kids():
                 else:
                     logging.info("Calling call_xai_api function...")
                     extracted_result = call_xai_api("", grade, session["attached_file"])
-                    logging.info(f"call_xai_api returned: {extracted_result}")
                     EXTRACTED_CONTENT[cache_key] = extracted_result
                     if len(EXTRACTED_CONTENT) > 50:
                         EXTRACTED_CONTENT.pop(next(iter(EXTRACTED_CONTENT)))
@@ -1188,145 +1185,52 @@ def kids():
                     "message": "Có lỗi xảy ra khi trích xuất nội dung. Bạn thử lại sau."
                 })
 
-        elif action == "attach_complete":
-            logging.info("Starting attach_complete action (DEPRECATED)...")
-            # This is the old implementation, keeping for backward compatibility
-            # In new code, we'll use extraction_status and check_extraction instead
-
-        elif action == "ask":
-            logging.info(f"Starting ask action with question: {session.get('current_question', 'N/A')}")
-            if clear_file and session.get("attached_file"):
-                try:
-                    os.remove(session["attached_file"])
-                    logging.info(f"Removed attached file due to clear_file: {session['attached_file']}")
-                except Exception as e:
-                    logging.error(f"Error removing attached file: {str(e)}")
-                session["attached_file"] = None
-            
-            # Xử lý clear_extracted_problems
-            clear_extracted_problems = request.form.get("clear_extracted_problems", "false").lower() == "true"
-            if clear_extracted_problems:
-                session["extracted_problems"] = None
-                logging.info("Cleared extracted_problems due to clear_extracted_problems flag")
-                
-            if question and not session.get("extracted_problems"):
-                recent = session["recent_questions"]
-                question = question[:100]
-                if question not in recent:
-                    recent.insert(0, question)
-                    session["recent_questions"] = recent[:5]
-                session["current_question"] = question
-                session["current_step"] = 0
-                session["cache_key"] = None
-                loading = True
-                loading_message = "Cho tớ suy nghĩ chút nhé!"
-                if session.get("grade", "4") == "7" and is_geometry_problem(question):
-                    image_path = get_geometry_image(question)
-                    session["image_path"] = image_path
-                else:
-                    session["image_path"] = None
-                session.modified = True
-            elif session.get("extracted_problems") and question:
-                session["current_question"] = question
-                session["current_step"] = 0
-                session["cache_key"] = None
-                loading = True
-                loading_message = "Cho tớ suy nghĩ chút nhé!"
-                if session.get("grade", "4") == "7" and is_geometry_problem(question):
-                    image_path = get_geometry_image(question)
-                    session["image_path"] = image_path
-                else:
-                    session["image_path"] = None
-                session.modified = True
+        # --- UNIFIED HINT LOGIC (FINAL FIX) ---
+        if action in ["ask", "explain_more"] and question:
+            cache_changed = "hint_cache" not in session or session.get("hint_cache_question") != question
+            if cache_changed:
+                hints = call_xai_api(problem=question, grade=session.get("grade", "4"), file_path=None)
+                session["hint_cache"] = hints
+                session["hint_cache_question"] = question
+                session["current_hint_index"] = 0
             else:
-                if session.get("extracted_problems"):
-                    hint = session["extracted_problems"]
+                hints = session["hint_cache"]
+                if action == "explain_more":
+                    if session["current_hint_index"] < len(hints) - 1:
+                        session["current_hint_index"] += 1
+            idx = session["current_hint_index"]
+            if hints and 0 <= idx < len(hints):
+                if idx > 0:
+                    hint = f"Gợi ý {idx+1}: {hints[idx]}"
                 else:
-                    hint = "Bạn chưa nhập câu hỏi. Hãy nhập câu hỏi hoặc chọn một bài toán nhé!"
-                session["current_question"] = ""
-                session["cache_key"] = None
-                session["image_path"] = None
-                session.modified = True
-            response = make_response(render_template("kids.html", hint=hint, tip=tip, loading=loading, 
-                                                   current_question=session["current_question"], 
-                                                   current_step=session["current_step"],
-                                                   recent_questions=session["recent_questions"], 
-                                                   image_path=session.get("image_path"),
-                                                   attached_file=session.get("attached_file"),
-                                                   extracted_problems=session.get("extracted_problems"),
-                                                   loading_message=loading_message,
-                                                   timestamp=int(time())))
-            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-            response.headers["Pragma"] = "no-cache"
-            response.headers["Expires"] = "0"
-            return response
-
-        elif action == "fetch_hints":
-            logging.info(f"Fetching hints for question: {session.get('current_question', 'N/A')}")
-            try:
-                if not session.get("current_question"):
-                    hint = "Bạn chưa chọn bài toán. Hãy chọn một câu hỏi nhé!"
-                    if session.get("extracted_problems"):
-                        hint = session["extracted_problems"]
-                    loading = False
-                    session.modified = True
-                    return render_template("kids.html", hint=hint, tip=tip, loading=loading, 
-                                         current_question=session["current_question"], 
-                                         current_step=session["current_step"],
-                                         recent_questions=session["recent_questions"], 
-                                         image_path=session.get("image_path"),
-                                         attached_file=session.get("attached_file"),
-                                         extracted_problems=session.get("extracted_problems"),
-                                         loading_message=loading_message,
-                                         timestamp=int(time()))
-                grade = session.get("grade", "4")
-                sleep(2)
-                cache_key = f"{session['current_question']}_grade_{grade}"
-                if session.get("attached_file"):
-                    cache_key += "_with_image"
-                if cache_key in HINT_CACHE:
-                    logging.info(f"Using cached hints for: {session['current_question']}")
-                    hints = HINT_CACHE[cache_key]
-                else:
-                    standardized_question = standardize_math_input(session["current_question"])
-                    hints = call_xai_api(standardized_question, grade, session.get("attached_file"))
-                    HINT_CACHE[cache_key] = hints
-                    if len(HINT_CACHE) > 50:
-                        HINT_CACHE.pop(next(iter(HINT_CACHE)))
-                session["cache_key"] = cache_key
-                loading = False
-                if len(hints) == 1 and "Tớ thấy các bài toán" in hints[0]:
-                    hint = f"Tớ không tìm thấy {session['current_question']} trong danh sách. Bạn thử nhập lại hoặc chọn bài khác nhé!"
-                    session["current_question"] = ""
-                    session["extracted_problems"] = None
-                else:
-                    hint = hints[0] if hints else "Tớ không có gợi ý cho bài toán này. Bạn thử nhập lại hoặc chọn bài khác nhé!"
-                    session["extracted_problems"] = None
-                session.modified = True
-                logging.info(f"Hints fetched successfully: {hints}")
-            except Exception as e:
-                logging.error(f"Error fetching hints: {str(e)}")
-                loading = False
-                hint = "Có lỗi xảy ra khi lấy gợi ý. Bạn thử lại sau nhé!"
-                session["attached_file"] = None
-                session["extracted_problems"] = None
-                session.modified = True
-
-        elif action == "explain_more":
-            cache_key = session.get("cache_key")
-            max_steps = 3 if session.get("grade", "4") == "2" else 5
-            hints = HINT_CACHE.get(cache_key, ["Tớ không có gợi ý cho bài toán này."] * max_steps)
-            if session["current_step"] < len(hints) - 1:
-                session["current_step"] += 1
-                hint = hints[session["current_step"]]
+                    hint = hints[idx]
             else:
-                hint = "Đó là gợi ý cuối cùng rồi! Bạn thử giải bài toán nhé."
-            session.modified = True
-
+                hint = "Tớ không có gợi ý cho bài toán này."
+            if idx >= len(hints) - 1:
+                tip = "Đã hết gợi ý cho bài này!"
+            else:
+                tip = ""
+            loading = False
+            loading_message = ""
+            idx = session["current_hint_index"]
+            return render_template(
+                "kids.html",
+                hint=hint, tip=tip, loading=loading,
+                current_question=question,
+                current_hint_index=session.get("current_hint_index", 0),
+                recent_questions=session["recent_questions"],
+                image_path=session.get("image_path"),
+                attached_file=session.get("attached_file"),
+                extracted_problems=session.get("extracted_problems"),
+                extraction_status=session.get("extraction_status", ""),
+                loading_message=loading_message,
+                timestamp=int(time())
+            )
+        # --- END UNIFIED HINT LOGIC ---
         elif action == "got_it":
             hint = "Bạn giỏi lắm!"
-            session["current_step"] = 0
-            session["cache_key"] = None
+            session["current_hint_index"] = 0
+            session["hint_cache"] = []
             session["current_question"] = ""
             session["image_path"] = None
             session["extracted_problems"] = None
@@ -1354,8 +1258,8 @@ def kids():
                 session.modified = True
                 # Khi đổi môn, reset các vấn đề liên quan
                 session["current_question"] = ""
-                session["current_step"] = 0
-                session["cache_key"] = None
+                session["current_hint_index"] = 0
+                session["hint_cache"] = []
                 session["image_path"] = None
                 session["attached_file"] = None
                 session["recent_questions"] = []
@@ -1364,14 +1268,12 @@ def kids():
                 hint = "Đã đổi môn học thành công! Hãy nhập câu hỏi hoặc tải ảnh để nhận gợi ý."
                 logging.info(f"Changed subject to: {subject}")
 
-    if session.get("cache_key"):
-        max_steps = 3 if session.get("grade", "4") == "2" else 5
-        hints = HINT_CACHE.get(session["cache_key"], ["Nhập bài toán hoặc tải ảnh để nhận gợi ý!"] * max_steps)
-        hint = hints[session["current_step"]] if session["current_step"] < len(hints) else "Nhập bài toán hoặc tải ảnh để nhận gợi ý!"
+    if session.get("hint_cache"):
+        hint = session["hint_cache"][session["current_hint_index"]] if session["current_hint_index"] < len(session["hint_cache"]) else "Nhập bài toán hoặc tải ảnh để nhận gợi ý!"
 
     response = make_response(render_template("kids.html", hint=hint, tip=tip, loading=loading, 
                                            current_question=session["current_question"], 
-                                           current_step=session["current_step"],
+                                           current_hint_index=session["current_hint_index"],
                                            recent_questions=session["recent_questions"], 
                                            image_path=session.get("image_path"),
                                            attached_file=session.get("attached_file"),
