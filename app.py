@@ -1341,6 +1341,23 @@ def kids():
             session.modified = True
             hint = "Lịch sử bài toán đã được xóa!"
 
+        elif action == "change_subject":
+            subject = request.form.get("subject")
+            if subject:
+                session["subject"] = subject
+                session.modified = True
+                # Khi đổi môn, reset các vấn đề liên quan
+                session["current_question"] = ""
+                session["current_step"] = 0
+                session["cache_key"] = None
+                session["image_path"] = None
+                session["attached_file"] = None
+                session["recent_questions"] = []
+                session["extracted_problems"] = None
+                session["extraction_status"] = ""
+                hint = "Đã đổi môn học thành công! Hãy nhập câu hỏi hoặc tải ảnh để nhận gợi ý."
+                logging.info(f"Changed subject to: {subject}")
+
     if session.get("cache_key"):
         max_steps = 3 if session.get("grade", "4") == "2" else 5
         hints = HINT_CACHE.get(session["cache_key"], ["Nhập bài toán hoặc tải ảnh để nhận gợi ý!"] * max_steps)
