@@ -623,6 +623,7 @@
     <!-- Ô input box ở dưới cùng -->
     <div class="input-section">
         <form method="POST" id="main-form" enctype="multipart/form-data">
+            <input type="hidden" name="subject" id="hidden-subject-input" value="{{ session.get('subject', 'math') }}">
             <div class="input-container">
                 <textarea name="question" id="question-input" placeholder="Nhập câu hỏi (ví dụ: Câu 4)"></textarea>
                 <button type="submit" name="action" value="ask" class="ask-btn">

@@ -91,6 +91,14 @@ function submitFileForm() {
             });
             formData.set('file', compressedBlob, file.name);
             formData.set('action', 'attach_file');
+            
+            // Before submitting file form, sync subject hidden input to match dropdown
+            const subjectSelect = document.getElementById('subject-select');
+            const subjectHidden = document.getElementById('hidden-subject-input');
+            if (subjectSelect && subjectHidden) {
+                subjectHidden.value = subjectSelect.value;
+            }
+            
             showLoadingState("Đang nén và tải file lên...");
             isProcessingRequest = true;
             fetch('/kids', { method: 'POST', body: formData, cache: 'no-store'})

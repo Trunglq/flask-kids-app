@@ -337,8 +337,9 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
 
             Cung cấp 4 gợi ý từng bước để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 3:
             - Bước 1: Giải thích yêu cầu của bài tập bằng từ ngữ đơn giản, thân thiện.
-            - Bước 2 đến 4: Chia thành các bước nhỏ, dễ làm, dùng câu hỏi gợi ý để bạn suy nghĩ.
-            - Không dùng từ ngữ quá phức tạp, chỉ dùng những từ phù hợp với học sinh lớp 3.
+            - Bước 2 đến 4: Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
+            - Đặt câu hỏi gợi mở để khuyến khích bạn suy nghĩ.
+            - Sử dụng ngôn ngữ phù hợp với học sinh lớp 3, đảm bảo chính xác về mặt ngữ pháp.
             - Không đưa ra đáp án cuối cùng.
             - Mỗi gợi ý phải thân thiện, ngắn gọn, dễ hiểu với học sinh lớp 3.
 
@@ -736,7 +737,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                     
                     # Lưu cache kết quả khi thành công
                     if problem and not file_path:
-                        cache_key = f"{problem}_grade_{grade}"
+                        cache_key = f"{problem}_grade_{grade}_subject_{subject}"
                         HINT_CACHE[cache_key] = lines[:(3 if grade == "2" else 5)]
                         if len(HINT_CACHE) > 100:  # Tăng kích thước cache
                             oldest_key = next(iter(HINT_CACHE))
@@ -798,7 +799,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                     backoff_time = delay * (2 ** (attempt - 1))  # 2, 4, 8... giây
                     logging.info(f"Retry {attempt}/{retries} - Waiting {backoff_time}s before retry...")
                     sleep(backoff_time)
-                    
+
                 logging.info(f"Calling xAI API (attempt {attempt + 1}/{retries})...")
                 
                 # Tăng timeout từ 20s lên 30s
@@ -822,7 +823,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                     
                     # Lưu cache kết quả khi thành công
                     if problem and not file_path:
-                        cache_key = f"{problem}_grade_{grade}"
+                        cache_key = f"{problem}_grade_{grade}_subject_{subject}"
                         HINT_CACHE[cache_key] = lines[:(3 if grade == "2" else 5)]
                         if len(HINT_CACHE) > 100:  # Tăng kích thước cache
                             oldest_key = next(iter(HINT_CACHE))
@@ -928,6 +929,10 @@ def kids():
     loading_message = "Cho tớ suy nghĩ chút nhé!"
 
     if request.method == "POST":
+        # --- SUBJECT SYNCHRONIZATION FIX ---
+        subject = request.form.get("subject") or session.get("subject", "math")
+        if subject:
+            session["subject"] = subject
         action = request.form.get("action")
         question = request.form.get("question", "").strip()
         file = request.files.get('file')
