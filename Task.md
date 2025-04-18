@@ -36,7 +36,7 @@
 7. **Tối ưu UI/UX cho responsive**
    - Cân nhắc sử dụng thư viện mở về UI để làm cho giao diện trông chuyên nghiệp hơn.
    - Đảm bảo ứng dụng hoạt động tốt trên các thiết bị khác nhau (desktop, tablet, mobile).
-   - **Status**: Partially done (Responsive design has been implemented with mobile-first principles, but further enhancements or UI library integration are pending)
+   - **Status**: Not done
 
 8. **Thêm tính năng "Góp ý về sản phẩm"**
    - Thêm một form hoặc nút để người dùng có thể gửi phản hồi hoặc góp ý về ứng dụng.
@@ -46,6 +46,26 @@
 9. **Thêm phần "Kiến thức liên quan" gợi ý bởi AI bằng cách trích xuất tự động từ kiến thức trong bài mà user hỏi**
    - Implement a feature to automatically extract and display related knowledge or concepts from the user's query using AI suggestions.
    - Update the UI and backend logic to present this information alongside hints or answers.
+   - **Status**: Not done
+
+10. **Cho phép trao đổi 2 chiều, AI trả về hint theo luồng hội thoại**
+   - Xây dựng chức năng hội thoại liên tục (multi-turn conversation) giữa học sinh và AI.
+   - Lưu lại lịch sử trao đổi (chat history) giữa học sinh và AI trong session.
+   - Dựa vào toàn bộ luồng hội thoại, AI sẽ trả về gợi ý (hint) phù hợp với ngữ cảnh, không chỉ dựa trên câu hỏi đơn lẻ.
+   - Cập nhật giao diện để hiển thị luồng hội thoại và gợi ý mới nhất.
+   - **Status**: Not done
+
+11. **Bổ sung menu chuyển Môn/Lớp học trong màn hình Kids**
+   - Thêm menu hoặc dropdown để người dùng dễ dàng chuyển đổi giữa các môn học (Toán, Tiếng Việt, v.v.) và các lớp học ngay trên giao diện Kids.
+   - Đảm bảo việc chuyển đổi cập nhật nội dung bài tập, gợi ý, và các tính năng liên quan theo đúng môn/lớp đã chọn.
+   - Thiết kế UI thân thiện, dễ thao tác cho trẻ nhỏ.
+   - **Status**: Not done
+
+12. **Gợi ý bài kiểm tra sau 10 câu hỏi**
+   - Khi user đã hỏi đủ 10 câu, hệ thống sẽ gợi ý làm một bài kiểm tra nhỏ.
+   - Đề bài kiểm tra gồm khoảng 5 câu, do AI tự động dựng dựa trên lịch sử trao đổi của 10 câu hỏi trước đó.
+   - Cập nhật logic lưu lịch sử trao đổi, sinh đề kiểm tra phù hợp với trình độ và nội dung đã học/luyện tập.
+   - Giao diện hiển thị thông báo, đề kiểm tra, và xử lý kết quả.
    - **Status**: Not done
 
 ## Notes
