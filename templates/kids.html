@@ -82,20 +82,56 @@
             gap: 15px;
         }
         .input-section {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto 20px auto;
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            background: rgba(255,255,255,0.97);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.07);
+            padding: 12px 0 8px 0;
+            width: 100vw;
+            margin: 0;
         }
         .input-container {
             display: flex;
-            align-items: flex-start;
+            align-items: flex-end;
             gap: 10px;
             width: 100%;
+            justify-content: space-between;
+        }
+        .upload-btn {
+            order: 1;
+            flex: 0 0 auto;
+            margin-right: 0;
+        }
+        .capture-btn {
+            order: 2;
+            flex: 0 0 auto;
+            background-color: #1E88E5;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 14px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0 2px;
+            display: flex;
+            align-items: center;
+        }
+        .capture-btn:active {
+            background-color: #1565C0;
+        }
+        .ask-btn {
+            order: 3;
+            flex: 0 0 auto;
+            margin-left: 0;
         }
         textarea {
+            order: 0;
+            flex: 1 1 auto;
+            min-width: 0;
+            margin: 0 6px;
             padding: 10px;
             font-size: 16px;
             border: 2px solid #1E88E5;
@@ -349,20 +385,19 @@
                 font-size: 16px;
             }
             .input-section {
-                padding: 6px;
+                padding: 8px 0 4px 0;
             }
             .input-container {
-                flex-direction: column;
                 gap: 6px;
+            }
+            .capture-btn, .ask-btn, .upload-btn {
+                font-size: 14px;
+                padding: 8px 9px;
             }
             textarea {
                 font-size: 14px;
                 min-height: 36px;
                 max-height: 90px;
-            }
-            .ask-btn, .upload-btn, .full-width-btn {
-                font-size: 14px;
-                padding: 8px 12px;
             }
             .problem-item {
                 font-size: 14px;
@@ -630,14 +665,17 @@
     <div class="input-section">
         <form method="POST" id="main-form" enctype="multipart/form-data">
             <div class="input-container">
-                <textarea name="question" id="question-input" placeholder="Nhập câu hỏi (ví dụ: Câu 4)"></textarea>
-                <button type="submit" name="action" value="ask" class="ask-btn">
-                    <span>❓</span> Hỏi
-                </button>
                 <label class="upload-btn">
                     <span>📎</span> Đính kèm ảnh
                     <input type="file" name="file" id="file-input" class="file-input" accept="image/png,image/jpeg,image/jpg">
                 </label>
+                <button type="button" class="capture-btn" id="capture-btn" onclick="openCamera()">
+                    <span>📷</span> Chụp ảnh
+                </button>
+                <textarea name="question" id="question-input" placeholder="Nhập câu hỏi (ví dụ: Câu 4)"></textarea>
+                <button type="submit" name="action" value="ask" class="ask-btn">
+                    <span>❓</span> Hỏi
+                </button>
             </div>
         </form>
     </div>
@@ -1235,6 +1273,28 @@
                 isProcessingRequest = false;
                 return false;
             }
+        }
+        
+        function openCamera() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Thiết bị không hỗ trợ chức năng chụp ảnh!');
+                return;
+            }
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.capture = 'environment';
+            input.onchange = function(event) {
+                const fileInput = document.getElementById('file-input');
+                if (event.target.files && event.target.files[0]) {
+                    // Gán file vừa chụp vào input file ẩn để reuse logic upload
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(event.target.files[0]);
+                    fileInput.files = dataTransfer.files;
+                    fileInput.dispatchEvent(new Event('change'));
+                }
+            };
+            input.click();
         }
     </script>
     <script src="{{ url_for('static', filename='js/kids.js') }}"></script>
