@@ -83,6 +83,28 @@
             margin-top: 10px;
             margin-bottom: 5px;
         }
+
+        /* --- Responsive Design Improvements --- */
+        @media (max-width: 600px) {
+            .container {
+                padding: 18px 6px;
+                max-width: 98vw;
+            }
+            h2 {
+                font-size: 20px;
+            }
+            p, .intro {
+                font-size: 13px;
+            }
+            select, button, .role-btn {
+                font-size: 13px;
+                padding: 8px;
+            }
+        }
+        @media (max-width: 400px) {
+            h2 { font-size: 16px; }
+            .container { padding: 8px 2px; }
+        }
     </style>
 </head>
 <body>

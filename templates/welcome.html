@@ -377,6 +377,63 @@
             font-size: 14px;
             color: #666;
         }
+
+        /* --- Responsive Design Improvements --- */
+        @media (max-width: 900px) {
+            .hero {
+                margin: 10px 5vw;
+                padding: 30px 5vw;
+            }
+            .features, .community-section {
+                padding: 30px 5vw;
+            }
+            header {
+                padding: 12px 3vw;
+            }
+        }
+        @media (max-width: 600px) {
+            .hero {
+                padding: 18px 2vw;
+                margin: 8px 0;
+                border-radius: 6px;
+            }
+            .hero h2 {
+                font-size: 28px;
+            }
+            .hero p, .hero .social-proof {
+                font-size: 15px;
+            }
+            .features h3 {
+                font-size: 18px;
+            }
+            .features {
+                padding: 18px 2vw;
+            }
+            .feature {
+                font-size: 14px;
+                padding: 10px 0;
+            }
+            .community-section {
+                padding: 18px 2vw;
+            }
+            header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px 2vw;
+            }
+            header h1 {
+                font-size: 18px;
+            }
+            header button {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+        }
+        @media (max-width: 400px) {
+            .hero h2 { font-size: 18px; }
+            .features h3 { font-size: 13px; }
+            .feature, .hero p, .hero .social-proof { font-size: 12px; }
+        }
     </style>
 </head>
 <body>
@@ -503,7 +560,7 @@
     </section>
 
     <footer>
-        <p>© 2025 AI for Kids. All rights reserved.</p>
+        <p> 2025 AI for Kids. All rights reserved.</p>
     </footer>
 
     <script>

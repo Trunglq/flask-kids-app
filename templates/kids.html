@@ -306,6 +306,74 @@
             border: 1px solid #ddd;
             border-radius: 5px;
         }
+        
+        /* --- Responsive Design Improvements --- */
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+                gap: 10px;
+                width: 98%;
+                max-width: 100vw;
+                margin: 10px auto;
+            }
+            .chat-column, .popular-column, .recent-column {
+                max-height: unset;
+                margin-bottom: 10px;
+            }
+            .chat-column, .popular-column, .recent-column {
+                flex: unset;
+                width: 100%;
+            }
+        }
+        @media (max-width: 600px) {
+            body {
+                font-size: 15px;
+                padding: 0;
+            }
+            .main-container {
+                padding: 0 2vw;
+                margin: 2vw auto;
+            }
+            .chat-column, .popular-column, .recent-column {
+                padding: 10px 5px;
+                border-radius: 6px;
+                box-shadow: 0 0 4px rgba(0,0,0,0.08);
+            }
+            .problem-statement, .hint-text, .content-section p {
+                font-size: 15px;
+            }
+            h2 {
+                font-size: 20px;
+            }
+            h3 {
+                font-size: 16px;
+            }
+            .input-section {
+                padding: 6px;
+            }
+            .input-container {
+                flex-direction: column;
+                gap: 6px;
+            }
+            textarea {
+                font-size: 14px;
+                min-height: 36px;
+                max-height: 90px;
+            }
+            .ask-btn, .upload-btn, .full-width-btn {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            .problem-item {
+                font-size: 14px;
+                padding: 7px 8px;
+            }
+        }
+        @media (max-width: 400px) {
+            h2 { font-size: 16px; }
+            h3 { font-size: 13px; }
+            .problem-statement, .hint-text, .content-section p { font-size: 12px; }
+        }
     </style>
 </head>
 <body>

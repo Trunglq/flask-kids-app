@@ -76,6 +76,31 @@
         .tips-section {
             margin-top: 30px;
         }
+
+        /* --- Responsive Design Improvements --- */
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px 4px;
+                max-width: 99vw;
+            }
+            h1 {
+                font-size: 19px;
+            }
+            h2 {
+                font-size: 15px;
+            }
+            p, ul, li {
+                font-size: 13px;
+            }
+            .btn {
+                font-size: 13px;
+                padding: 8px 10px;
+            }
+        }
+        @media (max-width: 400px) {
+            h1, h2 { font-size: 13px; }
+            .container { padding: 4px 1px; }
+        }
     </style>
 </head>
 <body>
