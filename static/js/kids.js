@@ -48,56 +48,73 @@ function resetProcessingState() {
     pollCount = 0;
 }
 
-// Submit form for file upload
+// Compress image using canvas before upload
+function compressImage(file, maxWidth = 1024, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth) {
+                height = height * (maxWidth / width);
+                width = maxWidth;
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob(blob => {
+                if (blob) resolve(blob);
+                else reject(new Error('Canvas toBlob failed'));}, file.type, quality);
+        };
+        img.onerror = err => reject(err);
+        img.src = URL.createObjectURL(file);
+    });
+}
+
+// Submit form for file upload (with client-side compression)
 function submitFileForm() {
     console.log("Submitting file form");
     const form = document.getElementById('main-form');
-    if (!form) {
-        console.error("Form not found");
+    if (!form) { console.error("Form not found"); return; }
+    const fileInput = document.getElementById('file-input');
+    // If user selected a file, compress before sending
+    if (fileInput && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        compressImage(file).then(compressedBlob => {
+            // Build FormData manually
+            const formData = new FormData();
+            new FormData(form).forEach((value, key) => {
+                if (key === 'file') return;
+                formData.append(key, value);
+            });
+            formData.set('file', compressedBlob, file.name);
+            formData.set('action', 'attach_file');
+            showLoadingState("Đang nén và tải file lên...");
+            isProcessingRequest = true;
+            fetch('/kids', { method: 'POST', body: formData, cache: 'no-store'})
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 413) throw new Error("Kích thước file quá lớn. Vui lòng chọn ảnh nhỏ hơn 16MB.");
+                    throw new Error("Server responded with status: " + response.status);
+                }
+                return response.text();
+            })
+            .then(html => { updatePageContent(html); isExtractionMode = true; setTimeout(pollExtractionStatus, 1000); })
+            .catch(error => { console.error("Error uploading file:", error); showError("Lỗi khi tải file: " + error.message); isProcessingRequest = false; });
+        }).catch(error => { console.error("Compression error:", error); showError("Lỗi nén ảnh: " + error.message); });
         return;
     }
-    
-    // Create FormData and add action
+    // Fallback: no file selected
     const formData = new FormData(form);
     formData.append('action', 'attach_file');
-    
-    // Show loading state
     showLoadingState("Đang tải file lên...");
-    
-    // Set processing flag
     isProcessingRequest = true;
-    
-    // Submit form via fetch
-    fetch('/kids', {
-        method: 'POST',
-        body: formData,
-        cache: 'no-store'
-    })
-    .then(response => {
-        if (!response.ok) {
-            if (response.status === 413) {
-                throw new Error("Kích thước file quá lớn. Vui lòng chọn ảnh nhỏ hơn 16MB.");
-            }
-            throw new Error("Server responded with status: " + response.status);
-        }
-        return response.text();
-    })
-    .then(html => {
-        console.log("File upload complete");
-        
-        // Update page content
-        updatePageContent(html);
-        
-        // Start polling for extraction status immediately
-        // since we're now automatically starting extraction
-        isExtractionMode = true;
-        setTimeout(pollExtractionStatus, 1000);
-    })
-    .catch(error => {
-        console.error("Error uploading file:", error);
-        showError("Lỗi khi tải file: " + error.message);
-        isProcessingRequest = false;
-    });
+    fetch('/kids', { method: 'POST', body: formData, cache: 'no-store' })
+    .then(response => { if (!response.ok) { if (response.status === 413) throw new Error("Kích thước file quá lớn. Vui lòng chọn ảnh nhỏ hơn 16MB."); throw new Error("Server responded with status: " + response.status);} return response.text(); })
+    .then(html => { updatePageContent(html); isExtractionMode = true; setTimeout(pollExtractionStatus, 1000); })
+    .catch(error => { console.error("Error uploading file:", error); showError("Lỗi khi tải file: " + error.message); isProcessingRequest = false; });
 }
 
 // Function to start extraction process
