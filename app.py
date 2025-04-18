@@ -150,6 +150,10 @@ def extract_specific_problem(extracted_text, problem):
 def get_parent_tip_from_api(question, retries=3, delay=2):
     check_rate_limit()
     
+    if "tip_cache" in session and question in session["tip_cache"]:
+        logging.info(f"Using cached tip for: {question}")
+        return session["tip_cache"][question]
+    
     url = "https://api.x.ai/v1/chat/completions"
     headers = {
         "Authorization": "Bearer xai-DCwUdnvyPe1EofmGW29GbglqUn2WU0WyiaWtmiaA2STEZoswhMwZrgtvhZoSbXzvdL3nnZ9iMyKIYXad",
@@ -201,42 +205,48 @@ def get_parent_tip_from_api(question, retries=3, delay=2):
     }
     for attempt in range(retries):
         try:
+            # Backoff delay tăng dần theo số lần thử 
             if attempt > 0:
-                backoff_time = delay * (2 ** (attempt - 1))
+                backoff_time = delay * (2 ** (attempt - 1))  # 2, 4, 8... giây
+                logging.info(f"Retry {attempt}/{retries} - Waiting {backoff_time}s before retry...")
                 sleep(backoff_time)
+
+            logging.info(f"Calling xAI API for parent tip (attempt {attempt + 1}/{retries})...")
             response = requests.post(url, headers=headers, json=payload, timeout=30)
             response.raise_for_status()
             data = response.json()
+            logging.info(f"API Response for tip (Status {response.status_code})")
             if "choices" in data and len(data["choices"]) > 0:
                 tip = data["choices"][0]["message"]["content"].strip()
+                if "tip_cache" not in session:
+                    session["tip_cache"] = {}
+                session["tip_cache"][question] = tip
+                if len(session["tip_cache"]) > 50:
+                    session["tip_cache"].pop(next(iter(session["tip_cache"])))
+                usage = data.get("usage", {})
+                total_tokens = usage.get("total_tokens", 0)
+                if "token_usage" not in session:
+                    session["token_usage"] = []
+                session["token_usage"].append({
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "problem": f"Parent tip for: {question}",
+                    "total_tokens": total_tokens
+                })
+                session["token_usage"] = session["token_usage"][-50:]
+                session.modified = True
                 return tip
+            else:
+                logging.warning(f"Unexpected API response format for tip: {data}")
+                if attempt == retries - 1:
+                    return "Hãy khuyến khích con chia bài toán thành các bước nhỏ và hỏi: 'Con nghĩ bước đầu tiên mình cần làm gì?'"
         except requests.exceptions.Timeout:
-            continue
-    return "Hãy khuyến khích con chia bài toán thành các bước nhỏ và hỏi: 'Con nghĩ bước đầu tiên mình cần làm gì?'"
-
-@app.route('/kids/hint', methods=['POST'])
-def get_next_parent_hint():
-    question = request.form.get('question', '').strip()
-    if not question:
-        return jsonify({'error': 'No question provided.'}), 400
-    # Initialize session storage for hints if not present
-    if 'parent_hints' not in session or session.get('parent_hint_question') != question:
-        session['parent_hints'] = []
-        session['parent_hint_index'] = 0
-        session['parent_hint_question'] = question
-    hints = session['parent_hints']
-    index = session['parent_hint_index']
-    # If we already have a hint at this index, return it
-    if index < len(hints):
-        hint = hints[index]
-    else:
-        # Otherwise, fetch a new hint from the API
-        hint = get_parent_tip_from_api(question)
-        hints.append(hint)
-        session['parent_hints'] = hints
-    session['parent_hint_index'] = index + 1
-    session.modified = True
-    return jsonify({'hint': hint, 'index': session['parent_hint_index']})
+            logging.error(f"Attempt {attempt + 1}/{retries} - Timeout error calling xAI API for tip")
+            if attempt == retries - 1:
+                return "Hãy khuyến khích con chia bài toán thành các bước nhỏ và hỏi: 'Con nghĩ bước đầu tiên mình cần làm gì?'"
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Attempt {attempt + 1}/{retries} - Error calling xAI API for tip: {str(e)}")
+            if attempt == retries - 1:
+                return "Hãy khuyến khích con chia bài toán thành các bước nhỏ và hỏi: 'Con nghĩ bước đầu tiên mình cần làm gì?'"
 
 def is_geometry_problem(question):
     geometry_keywords = ["tam giác", "hình lăng trụ", "đường thẳng", "góc", "hình hộp", "hình lập phương", "hình vuông", "hình chữ nhật"]
@@ -284,14 +294,14 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Tập nói: Trả lời câu hỏi đơn giản, kể chuyện theo tranh.
             - Nghe hiểu: Hiểu các câu chuyện, bài thơ ngắn, dễ hiểu.
 
-            Cung cấp 3 gợi ý từng bước để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 1:
-            - Bước 1: Giải thích yêu cầu của bài tập bằng từ ngữ đơn giản, vui vẻ.
-            - Bước 2 và 3: Chia thành các bước nhỏ, dễ làm, dùng câu hỏi vui để bạn suy nghĩ.
+            Cung cấp 1 gợi ý để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 1:
+            - Gợi ý nên giải thích yêu cầu của bài tập bằng từ ngữ đơn giản, vui vẻ.
+            - Chia thành các bước nhỏ, dễ làm, dùng câu hỏi vui để bạn suy nghĩ.
             - Không dùng từ ngữ phức tạp, chỉ dùng từ trẻ lớp 1 hiểu.
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý phải thân thiện, ngắn gọn, dễ hiểu với học sinh lớp 1.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt, ngắn và vui.
 
-            Định dạng phản hồi là danh sách 3 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
         elif grade == "2":
             system_prompt = """
@@ -304,14 +314,14 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Ngữ pháp: Nhận biết được danh từ, động từ cơ bản.
             - Kể chuyện: Kể lại câu chuyện đã nghe, đã đọc; trả lời câu hỏi về nội dung bài.
 
-            Cung cấp 3 gợi ý từng bước để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 2:
-            - Bước 1: Giải thích yêu cầu của bài tập bằng từ ngữ đơn giản, vui vẻ.
-            - Bước 2 và 3: Chia thành các bước nhỏ, dễ làm, dùng câu hỏi gợi ý để bạn suy nghĩ.
+            Cung cấp 1 gợi ý để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 2:
+            - Gợi ý nên giải thích yêu cầu của bài tập bằng từ ngữ đơn giản, vui vẻ.
+            - Chia thành các bước nhỏ, dễ làm, dùng câu hỏi gợi ý để bạn suy nghĩ.
             - Không dùng từ ngữ phức tạp, chỉ dùng từ trẻ lớp 2 hiểu được.
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý phải thân thiện, ngắn gọn, dễ hiểu với học sinh lớp 2.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt, ngắn và vui.
 
-            Định dạng phản hồi là danh sách 3 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
         elif grade == "3":
             system_prompt = """
@@ -324,14 +334,14 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Ngữ pháp: Phân biệt danh từ, động từ, tính từ; câu kể, câu hỏi, câu khiến.
             - Kỹ năng: Biết cách trả lời câu hỏi dựa vào nội dung văn bản; tự đặt câu hỏi.
 
-            Cung cấp 4 gợi ý từng bước để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 3:
-            - Bước 1: Giải thích yêu cầu của bài tập bằng từ ngữ đơn giản, thân thiện.
-            - Bước 2 đến 4: Chia thành các bước nhỏ, dễ làm, dùng câu hỏi gợi ý để bạn suy nghĩ.
+            Cung cấp 1 gợi ý để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 3:
+            - Gợi ý nên giải thích yêu cầu của bài tập bằng từ ngữ đơn giản, thân thiện.
+            - Chia thành các bước nhỏ, dễ làm, dùng câu hỏi gợi ý để bạn suy nghĩ.
             - Không dùng từ ngữ quá phức tạp, chỉ dùng những từ phù hợp với học sinh lớp 3.
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý phải thân thiện, ngắn gọn, dễ hiểu với học sinh lớp 3.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt, ngắn và rõ ràng.
 
-            Định dạng phản hồi là danh sách 4 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
         elif grade == "4":
             system_prompt = """
@@ -344,15 +354,15 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Ngữ pháp: Các thành phần chính của câu (chủ ngữ, vị ngữ); dấu câu; nối câu đơn thành câu ghép.
             - Chính tả: Quy tắc chính tả, dấu hỏi, dấu ngã, viết hoa.
 
-            Cung cấp 5 gợi ý từng bước để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 4:
-            - Bước 1: Giải thích yêu cầu của bài tập, khái niệm cần nắm.
-            - Từ bước 2 trở đi: Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
+            Cung cấp 1 gợi ý để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 4:
+            - Gợi ý nên giải thích yêu cầu của bài tập, khái niệm cần nắm.
+            - Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
             - Đặt câu hỏi gợi mở để khuyến khích bạn suy nghĩ.
             - Sử dụng ngôn ngữ phù hợp với học sinh lớp 4, tránh từ ngữ chuyên ngành phức tạp.
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
 
-            Định dạng phản hồi là danh sách 5 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
         elif grade == "5":
             system_prompt = """
@@ -365,15 +375,15 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Tiếng Việt: Từ vựng chuyên ngành, đồng nghĩa, trái nghĩa; các biện pháp tu từ (so sánh, nhân hóa).
             - Làm văn: Văn miêu tả, văn tự sự, văn biểu cảm; thuyết minh; viết đoạn, bài văn hoàn chỉnh.
 
-            Cung cấp 5 gợi ý từng bước để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 5:
-            - Bước 1: Giải thích yêu cầu của bài tập, các khái niệm cơ bản liên quan.
-            - Từ bước 2 trở đi: Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
+            Cung cấp 1 gợi ý để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 5:
+            - Gợi ý nên giải thích yêu cầu của bài tập, các khái niệm cơ bản liên quan.
+            - Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
             - Đặt câu hỏi gợi mở để khuyến khích bạn suy nghĩ.
             - Sử dụng ngôn ngữ phù hợp với học sinh lớp 5, đảm bảo chính xác về thuật ngữ văn học.
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
 
-            Định dạng phản hồi là danh sách 5 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
         elif grade == "6":
             system_prompt = """
@@ -386,15 +396,15 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Tiếng Việt: Từ vựng chuyên ngành, đồng nghĩa, trái nghĩa; các biện pháp tu từ (so sánh, nhân hóa).
             - Làm văn: Văn miêu tả, văn tự sự, văn biểu cảm; thuyết minh; viết đoạn, bài văn hoàn chỉnh.
 
-            Cung cấp 5 gợi ý từng bước để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 6:
-            - Bước 1: Giải thích yêu cầu của bài tập, các khái niệm cơ bản liên quan.
-            - Từ bước 2 trở đi: Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
+            Cung cấp 1 gợi ý để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 6:
+            - Gợi ý nên giải thích yêu cầu của bài tập, các khái niệm cơ bản liên quan.
+            - Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
             - Đặt câu hỏi gợi mở để khuyến khích bạn suy nghĩ.
             - Sử dụng ngôn ngữ phù hợp với học sinh lớp 6, đảm bảo chính xác về thuật ngữ văn học.
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
 
-            Định dạng phản hồi là danh sách 5 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
         else:  # Grade 7
             system_prompt = """
@@ -407,15 +417,15 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Tiếng Việt: Từ ghép, từ láy; các biện pháp tu từ (ẩn dụ, hoán dụ, điệp từ); dấu câu.
             - Làm văn: Văn tự sự, văn miêu tả, văn biểu cảm, văn thuyết minh, văn nghị luận.
 
-            Cung cấp 5 gợi ý từng bước để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 7:
-            - Bước 1: Giải thích rõ ràng yêu cầu của bài tập, khái niệm cần nắm.
-            - Từ bước 2 trở đi: Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
+            Cung cấp 1 gợi ý để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 7:
+            - Gợi ý nên giải thích rõ ràng yêu cầu của bài tập, khái niệm cần nắm.
+            - Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
             - Đặt câu hỏi gợi mở để khuyến khích bạn suy nghĩ.
             - Sử dụng ngôn ngữ phù hợp với học sinh lớp 7, đảm bảo chính xác về mặt học thuật.
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
 
-            Định dạng phản hồi là danh sách 5 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
     else:  # Môn Toán (mặc định)
         if grade == "1":
@@ -428,14 +438,14 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Hình học: Nhận biết hình vuông, hình tròn, hình tam giác.
             - Bài toán có lời văn: Bài toán đơn giản về cộng, trừ (ví dụ: "Lan có 5 quả táo, mẹ cho thêm 2 quả, hỏi Lan có bao nhiêu quả?")
 
-            Cung cấp 3 gợi ý từng bước để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 1:
-            - Bước 1: Giải thích ý nghĩa bài toán hoặc phép tính bằng ví dụ gần gũi (ví dụ: "Cộng giống như gom kẹo lại với nhau, bạn thấy thế nào?").
-            - Bước 2 và 3: Chia bài toán thành bước nhỏ, dễ làm, dùng câu hỏi vui để bạn suy nghĩ (ví dụ: "Nếu có 3 quả táo, thêm 2 quả nữa, bạn đếm được bao nhiêu ngón tay?").
+            Cung cấp 1 gợi ý để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 1:
+            - Gợi ý nên giải thích ý nghĩa bài toán hoặc phép tính bằng ví dụ gần gũi (ví dụ: "Cộng giống như gom kẹo lại với nhau, bạn thấy thế nào?").
+            - Chia bài toán thành bước nhỏ, dễ làm, dùng câu hỏi vui để bạn suy nghĩ.
             - Không dùng từ ngữ phức tạp, chỉ dùng từ trẻ lớp 1 hiểu.
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý là một câu hoàn chỉnh, bằng tiếng Việt, ngắn và vui.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt, ngắn và vui.
 
-            Định dạng phản hồi là danh sách 3 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
         elif grade == "2":
             system_prompt = """
@@ -444,17 +454,17 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             Chương trình toán lớp 2 ở Việt Nam bao gồm:
             - Số học: Đếm, đọc, viết số đến 1000; cộng, trừ số trong phạm vi 1000 (ví dụ: 45 + 27, 83 - 19); nhân, chia số nhỏ (bảng cửu chương 2, 3, 4, 5).
             - Đo lường: Đo độ dài (cm, m), khối lượng (kg), thời gian (giờ, phút); xem đồng hồ (giờ đúng, giờ rưỡi).
-            - Hình học: Nhận biết hình vuông, hình chữ nhật, hình tam giác, hình tròn.
+            - Hình học: Nhận biết hình (vuông, chữ nhật, tam giác); tính chu vi hình tam giác, hình vuông, hình chữ nhật.
             - Bài toán có lời văn: Bài toán đơn giản về cộng, trừ, nhân, chia (ví dụ: "Lan có 5 quả táo, mẹ cho thêm 3 quả, hỏi Lan có bao nhiêu quả?")
 
-            Cung cấp 3 gợi ý từng bước để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 2:
-            - Bước 1: Giải thích ý nghĩa bài toán hoặc phép tính bằng ví dụ gần gũi (ví dụ: "Cộng giống như gom kẹo lại với nhau, bạn thấy thế nào?").
-            - Bước 2 và 3: Chia bài toán thành bước nhỏ, dễ làm, dùng câu hỏi vui để bạn suy nghĩ (ví dụ: "Nếu có 3 quả táo, thêm 2 quả nữa, bạn đếm được bao nhiêu ngón tay?").
+            Cung cấp 1 gợi ý để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 2:
+            - Gợi ý nên giải thích ý nghĩa bài toán hoặc phép tính bằng ví dụ gần gũi (ví dụ: "Cộng giống như gom kẹo lại với nhau, bạn thấy thế nào?").
+            - Chia bài toán thành bước nhỏ, dễ làm, dùng câu hỏi vui để bạn suy nghĩ.
             - Không dùng từ ngữ phức tạp, chỉ dùng từ trẻ lớp 2 hiểu (tránh "phương trình", "tính chất").
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý là một câu hoàn chỉnh, bằng tiếng Việt, ngắn và vui.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt, ngắn và vui.
 
-            Định dạng phản hồi là danh sách 3 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
         elif grade == "3":
             system_prompt = """
@@ -466,14 +476,14 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Hình học: Nhận biết hình (vuông, chữ nhật, tam giác); tính chu vi hình tam giác, hình vuông, hình chữ nhật.
             - Bài toán có lời văn: Bài toán về cộng, trừ, nhân, chia (ví dụ: "Một cửa hàng có 120 quả táo, bán được 45 quả, hỏi còn lại bao nhiêu quả?")
 
-            Cung cấp 4 gợi ý từng bước để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 3:
-            - Bước 1: Giải thích ý nghĩa bài toán hoặc phép tính bằng ví dụ gần gũi (ví dụ: "Cộng giống như gom đồ chơi lại, bạn thấy thế nào?").
-            - Bước 2 đến 4: Chia bài toán thành bước nhỏ, dễ làm, dùng câu hỏi vui để bạn suy nghĩ (ví dụ: "Nếu có 30 quả táo, chia cho 5 bạn, mỗi bạn được bao nhiêu quả?").
+            Cung cấp 1 gợi ý để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 3:
+            - Gợi ý nên giải thích ý nghĩa bài toán hoặc phép tính bằng ví dụ gần gũi (ví dụ: "Cộng giống như gom đồ chơi lại, bạn thấy thế nào?").
+            - Chia bài toán thành bước nhỏ, dễ làm, dùng câu hỏi vui để bạn suy nghĩ.
             - Không dùng từ ngữ phức tạp, chỉ dùng từ trẻ lớp 3 hiểu.
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý là một câu hoàn chỉnh, bằng tiếng Việt, ngắn và vui.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt, ngắn và vui.
 
-            Định dạng phản hồi là danh sách 4 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
         elif grade == "4":
             system_prompt = """
@@ -488,19 +498,18 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Bài toán có lời văn: Bài toán về trung bình cộng, tỉ số, chuyển động (ví dụ: ô tô đi 120 km trong 2 giờ, tính vận tốc).
             - Dữ liệu: Đọc và phân tích biểu đồ cột đơn giản; thu thập và biểu diễn dữ liệu (ví dụ: bảng số liệu về số táo hái được trong 5 ngày).
 
-            Cung cấp 5 gợi ý từng bước để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 4:
-            - Bước 1 phải tập trung vào việc giải thích khái niệm hoặc công thức liên quan đến bài toán, dùng ví dụ gần gũi để bạn dễ hình dung (ví dụ: "Diện tích giống như số ô vuông nhỏ bên trong hình chữ nhật, bạn có biết không?").
-            - Từ bước 2 trở đi, chia bài toán thành các bước nhỏ, dễ quản lý, mỗi bước xây dựng dựa trên bước trước.
-            - Đặt câu hỏi gợi mở để khuyến khích bạn suy nghĩ (ví dụ: "Bạn thử cộng các số hàng chục trước xem được bao nhiêu?").
-            - Sử dụng ngôn ngữ đơn giản, rõ ràng, tránh từ ngữ phức tạp hoặc ví dụ không liên quan (ví dụ: không dùng kẹo để giải thích vận tốc).
+            Cung cấp 1 gợi ý để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 4:
+            - Gợi ý nên giải thích phương pháp giải, kiến thức cần dùng, bằng ngôn ngữ phù hợp với học sinh lớp 4.
+            - Đặt câu hỏi gợi mở để khuyến khích bạn suy nghĩ.
+            - Sử dụng ngôn ngữ phù hợp với học sinh lớp 4, tránh từ ngữ chuyên ngành phức tạp.
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
 
-            Định dạng phản hồi là danh sách 5 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
         elif grade == "5":
             system_prompt = """
-            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 5 (10-11 tuổi) ở Việt Nam học toán bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải rõ ràng, khuyến khích, sử dụng ví dụ gần gũi, và phù hợp với độ tuổi. Mỗi gợi ý nên dẫn dắt bạn tiến gần hơn đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, thân thiện, phù hợp với học sinh lớp 5 ở Việt Nam.
+            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 5 (10-11 tuổi) ở Việt Nam học toán bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải rõ ràng, khuyến khích, và sử dụng ví dụ gần gũi, và phù hợp với độ tuổi. Mỗi gợi ý nên dẫn dắt bạn tiến gần hơn đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, thân thiện, phù hợp với học sinh lớp 5 ở Việt Nam.
 
             Chương trình toán lớp 5 ở Việt Nam bao gồm:
             - Số học: Phép tính với số thập phân, phân số, tỉ số phần trăm, diện tích, thể tích các hình cơ bản, bài toán chuyển động, bài toán có lời văn.
@@ -509,15 +518,15 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Bài toán có lời văn: Bài toán về trung bình cộng, tỉ số, chuyển động (ví dụ: ô tô đi 120 km trong 2 giờ, tính vận tốc).
             - Dữ liệu: Đọc và phân tích biểu đồ cột đơn giản; thu thập và biểu diễn dữ liệu (ví dụ: bảng số liệu về số táo hái được trong 5 ngày).
 
-            Cung cấp 5 gợi ý từng bước để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 5:
-            - Bước 1: Giải thích yêu cầu của bài tập, khái niệm hoặc công thức liên quan.
-            - Từ bước 2 trở đi: Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
+            Cung cấp 1 gợi ý để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 5:
+            - Gợi ý nên giải thích yêu cầu của bài tập, khái niệm hoặc công thức liên quan.
+            - Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
             - Đặt câu hỏi gợi mở để khuyến khích bạn suy nghĩ.
             - Sử dụng ngôn ngữ phù hợp với học sinh lớp 5, tránh từ ngữ chuyên ngành phức tạp.
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
 
-            Định dạng phản hồi là danh sách 5 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
         elif grade == "6":
             system_prompt = """
@@ -530,15 +539,15 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Tiếng Việt: Từ vựng chuyên ngành, đồng nghĩa, trái nghĩa; các biện pháp tu từ (so sánh, nhân hóa).
             - Làm văn: Văn miêu tả, văn tự sự, văn biểu cảm; thuyết minh; viết đoạn, bài văn hoàn chỉnh.
 
-            Cung cấp 5 gợi ý từng bước để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 6:
-            - Bước 1: Giải thích yêu cầu của bài tập, các khái niệm cơ bản liên quan.
-            - Từ bước 2 trở đi: Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
+            Cung cấp 1 gợi ý để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 6:
+            - Gợi ý nên giải thích yêu cầu của bài tập, các khái niệm cơ bản liên quan.
+            - Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
             - Đặt câu hỏi gợi mở để khuyến khích bạn suy nghĩ.
             - Sử dụng ngôn ngữ phù hợp với học sinh lớp 6, đảm bảo chính xác về thuật ngữ văn học.
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
 
-            Định dạng phản hồi là danh sách 5 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
         else:  # Grade 7
             system_prompt = """
@@ -551,15 +560,15 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             - Tiếng Việt: Từ ghép, từ láy; các biện pháp tu từ (ẩn dụ, hoán dụ, điệp từ); dấu câu.
             - Làm văn: Văn tự sự, văn miêu tả, văn biểu cảm, văn thuyết minh, văn nghị luận.
 
-            Cung cấp 5 gợi ý từng bước để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 7:
-            - Bước 1: Giải thích rõ ràng yêu cầu của bài tập, khái niệm cần nắm.
-            - Từ bước 2 trở đi: Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
+            Cung cấp 1 gợi ý để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 7:
+            - Gợi ý nên giải thích rõ ràng yêu cầu của bài tập, khái niệm cần nắm.
+            - Chia thành các bước nhỏ, dễ làm, mỗi bước xây dựng dựa trên bước trước.
             - Đặt câu hỏi gợi mở để khuyến khích bạn suy nghĩ.
             - Sử dụng ngôn ngữ phù hợp với học sinh lớp 7, đảm bảo chính xác về mặt học thuật.
             - Không đưa ra đáp án cuối cùng.
-            - Mỗi gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
+            - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt.
 
-            Định dạng phản hồi là danh sách 5 gợi ý, mỗi gợi ý trên một dòng.
+            Định dạng phản hồi là một gợi ý duy nhất.
             """
 
     if file_path:
@@ -567,7 +576,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
         # Kiểm tra file trước khi xử lý
         if not os.path.exists(file_path):
             logging.error(f"File not found: {file_path}")
-            return ["File không tồn tại trên server. Bạn thử tải lại nhé!"] * (3 if grade == "2" else 5)
+            return ["File không tồn tại trên server. Bạn thử tải lại nhé!"]
 
         file_type = "image/png" if file_path.lower().endswith(('.png', '.jpg', '.jpeg')) else "application/pdf"
         logging.info(f"File type detected: {file_type}")
@@ -605,7 +614,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                 logging.info(f"File encoded to base64 successfully: {file_path}")
             except Exception as e:
                 logging.error(f"Error encoding file to base64: {str(e)}")
-                return ["Có lỗi khi đọc file. Bạn thử tải lại nhé!"] * (3 if grade == "2" else 5)
+                return ["Có lỗi khi đọc file. Bạn thử tải lại nhé!"]
 
             payload = {
                 "messages": [
@@ -635,7 +644,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                 # Tách bài toán cụ thể từ extracted_text
                 specific_problem = extract_specific_problem(extracted_text, problem)
                 if not specific_problem:
-                    return ["Tớ không tìm thấy bài toán bạn yêu cầu. Bạn thử nhập lại nhé!"] * (3 if grade == "2" else 5)
+                    return ["Tớ không tìm thấy bài toán bạn yêu cầu. Bạn thử nhập lại nhé!"]
                 # Gửi bài toán cụ thể cho API
                 user_prompt = f"""
                 Bài toán: {specific_problem}
@@ -719,15 +728,15 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                         if "Tớ thấy các bài toán" in lines[0]:
                             return lines
                         elif "Tớ không đọc được" in lines[0] or "Tớ gặp khó khăn" in lines[0] or "Tớ không nhận diện được" in lines[0]:
-                            return lines + ["Bạn thử nhập lại hoặc chọn bài toán khác nhé!"] * (2 if grade == "2" else 4)
-                    while len(lines) < (3 if grade == "2" else 5):
+                            return lines + ["Bạn thử nhập lại hoặc chọn bài toán khác nhé!"]
+                    while len(lines) < 1:
                         lines.append("Bạn thử áp dụng gợi ý trước để giải bài toán nhé!")
                     
                     # Lưu cache kết quả khi thành công
                     if problem and not file_path:
-                        cache_key = f"{problem}_grade_{grade}_subject_{subject}"
-                        HINT_CACHE[cache_key] = lines[:(3 if grade == "2" else 5)]
-                        if len(HINT_CACHE) > 100:  # Tăng kích thước cache
+                        cache_key = f"{problem}_grade_{grade}"
+                        HINT_CACHE[cache_key] = lines[:1]
+                        if len(HINT_CACHE) > 100:
                             oldest_key = next(iter(HINT_CACHE))
                             HINT_CACHE.pop(oldest_key)
                         logging.info(f"Cached result for problem: {problem}")
@@ -743,21 +752,22 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                     })
                     session["token_usage"] = session["token_usage"][-50:]
                     session.modified = True
-                    return lines[:(3 if grade == "2" else 5)]
+                    return lines[:1]
                 else:
                     logging.warning(f"Unexpected API response format: {data}")
                     if attempt == retries - 1:
                         logging_message = f"Failed after {retries} attempts with API. Returning default response."
                         logging.error(logging_message)
-                        return ["Tớ gặp trục trặc khi lấy gợi ý. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
+                        return ["Tớ gặp trục trặc khi lấy gợi ý. Bạn thử lại sau nhé!"]
             except requests.exceptions.Timeout:
                 logging.error(f"Attempt {attempt + 1}/{retries} - Timeout error calling xAI API")
                 if attempt == retries - 1:
-                    return ["API bị timeout. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
+                    return ["API bị timeout. Bạn thử lại sau nhé!"]
             except requests.exceptions.RequestException as e:
                 logging.error(f"Attempt {attempt + 1}/{retries} - Error calling xAI API: {str(e)}")
                 if attempt == retries - 1:
-                    return ["Tớ gặp khó khăn khi kết nối với API. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
+                    return ["Tớ gặp khó khăn khi kết nối với API. Bạn thử lại sau nhé!"]
+
     else:
         # Regular text query without file
         user_prompt = f"""
@@ -787,7 +797,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                     backoff_time = delay * (2 ** (attempt - 1))  # 2, 4, 8... giây
                     logging.info(f"Retry {attempt}/{retries} - Waiting {backoff_time}s before retry...")
                     sleep(backoff_time)
-                    
+
                 logging.info(f"Calling xAI API (attempt {attempt + 1}/{retries})...")
                 
                 # Tăng timeout từ 20s lên 30s
@@ -805,15 +815,15 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                         if "Tớ thấy các bài toán" in lines[0]:
                             return lines
                         elif "Tớ không đọc được" in lines[0] or "Tớ gặp khó khăn" in lines[0] or "Tớ không nhận diện được" in lines[0]:
-                            return lines + ["Bạn thử nhập lại hoặc chọn bài toán khác nhé!"] * (2 if grade == "2" else 4)
-                    while len(lines) < (3 if grade == "2" else 5):
+                            return lines + ["Bạn thử nhập lại hoặc chọn bài toán khác nhé!"]
+                    while len(lines) < 1:
                         lines.append("Bạn thử áp dụng gợi ý trước để giải bài toán nhé!")
                     
                     # Lưu cache kết quả khi thành công
                     if problem and not file_path:
-                        cache_key = f"{problem}_grade_{grade}_subject_{subject}"
-                        HINT_CACHE[cache_key] = lines[:(3 if grade == "2" else 5)]
-                        if len(HINT_CACHE) > 100:  # Tăng kích thước cache
+                        cache_key = f"{problem}_grade_{grade}"
+                        HINT_CACHE[cache_key] = lines[:1]
+                        if len(HINT_CACHE) > 100:
                             oldest_key = next(iter(HINT_CACHE))
                             HINT_CACHE.pop(oldest_key)
                         logging.info(f"Cached result for problem: {problem}")
@@ -829,21 +839,21 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                     })
                     session["token_usage"] = session["token_usage"][-50:]
                     session.modified = True
-                    return lines[:(3 if grade == "2" else 5)]
+                    return lines[:1]
                 else:
                     logging.warning(f"Unexpected API response format: {data}")
                     if attempt == retries - 1:
                         logging_message = f"Failed after {retries} attempts with API. Returning default response."
                         logging.error(logging_message)
-                        return ["Tớ gặp trục trặc khi lấy gợi ý. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
+                        return ["Tớ gặp trục trặc khi lấy gợi ý. Bạn thử lại sau nhé!"]
             except requests.exceptions.Timeout:
                 logging.error(f"Attempt {attempt + 1}/{retries} - Timeout error calling xAI API")
                 if attempt == retries - 1:
-                    return ["API bị timeout. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
+                    return ["API bị timeout. Bạn thử lại sau nhé!"]
             except requests.exceptions.RequestException as e:
                 logging.error(f"Attempt {attempt + 1}/{retries} - Error calling xAI API: {str(e)}")
                 if attempt == retries - 1:
-                    return ["Tớ gặp khó khăn khi kết nối với API. Bạn thử lại sau nhé!"] * (3 if grade == "2" else 5)
+                    return ["Tớ gặp khó khăn khi kết nối với API. Bạn thử lại sau nhé!"]
 
 demo_hint = "Nhập bài toán hoặc tải ảnh để nhận gợi ý!"
 
@@ -1178,7 +1188,7 @@ def kids():
             # In new code, we'll use extraction_status and check_extraction instead
 
         elif action == "ask":
-            logging.info(f"Starting ask action with question: {question}")
+            logging.info(f"Starting ask action with question: {session.get('current_question', 'N/A')}")
             if clear_file and session.get("attached_file"):
                 try:
                     os.remove(session["attached_file"])
@@ -1298,8 +1308,8 @@ def kids():
 
         elif action == "explain_more":
             cache_key = session.get("cache_key")
-            max_steps = 3 if session.get("grade", "4") == "2" else 5
-            hints = HINT_CACHE.get(cache_key, ["Tớ không có gợi ý cho bài toán này."] * max_steps)
+            max_steps = 1
+            hints = HINT_CACHE.get(cache_key, ["Tớ không có gợi ý cho bài toán này."])
             if session["current_step"] < len(hints) - 1:
                 session["current_step"] += 1
                 hint = hints[session["current_step"]]
@@ -1332,8 +1342,7 @@ def kids():
             hint = "Lịch sử bài toán đã được xóa!"
 
     if session.get("cache_key"):
-        max_steps = 3 if session.get("grade", "4") == "2" else 5
-        hints = HINT_CACHE.get(session["cache_key"], ["Nhập bài toán hoặc tải ảnh để nhận gợi ý!"] * max_steps)
+        hints = HINT_CACHE.get(session["cache_key"], ["Nhập bài toán hoặc tải ảnh để nhận gợi ý!"])
         hint = hints[session["current_step"]] if session["current_step"] < len(hints) else "Nhập bài toán hoặc tải ảnh để nhận gợi ý!"
 
     response = make_response(render_template("kids.html", hint=hint, tip=tip, loading=loading, 
@@ -1386,30 +1395,6 @@ def api_usage():
 @app.route('/tmp/<path:filename>')
 def serve_tmp_file(filename):
     return send_from_directory('tmp', filename)
-
-@app.route('/kids/hint', methods=['POST'])
-def get_next_parent_hint():
-    question = request.form.get('question', '').strip()
-    if not question:
-        return jsonify({'error': 'No question provided.'}), 400
-    # Initialize session storage for hints if not present
-    if 'parent_hints' not in session or session.get('parent_hint_question') != question:
-        session['parent_hints'] = []
-        session['parent_hint_index'] = 0
-        session['parent_hint_question'] = question
-    hints = session['parent_hints']
-    index = session['parent_hint_index']
-    # If we already have a hint at this index, return it
-    if index < len(hints):
-        hint = hints[index]
-    else:
-        # Otherwise, fetch a new hint from the API
-        hint = get_parent_tip_from_api(question)
-        hints.append(hint)
-        session['parent_hints'] = hints
-    session['parent_hint_index'] = index + 1
-    session.modified = True
-    return jsonify({'hint': hint, 'index': session['parent_hint_index']})
 
 if __name__ == "__main__":
     app.run(debug=True)
