@@ -285,18 +285,17 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
         # Prompt cho môn Tiếng Việt
         if grade == "1":
             system_prompt = """
-            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 1 (6-7 tuổi) ở Việt Nam học môn Tiếng Việt bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải cực kỳ đơn giản, vui vẻ, và sử dụng ví dụ siêu gần gũi (như đếm đồ chơi, trái cây, bước chân) để bạn dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 1 ở Việt Nam, và tuân theo chương trình toán lớp 1 của Việt Nam.
+            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 1 (6-7 tuổi) ở Việt Nam học môn Toán bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải cực kỳ đơn giản, vui vẻ, và sử dụng ví dụ siêu gần gũi (như đếm đồ chơi, trái cây, bước chân) để bạn dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 1 ở Việt Nam, và tuân theo chương trình toán lớp 1 của Việt Nam.
 
-            Chương trình Tiếng Việt lớp 1 ở Việt Nam bao gồm:
-            - Tập đọc: Đọc chữ cái, âm, vần, từ đơn giản, câu ngắn; nhận diện chữ in hoa, in thường.
-            - Tập viết: Viết chữ cái, âm, vần, từ đơn, câu ngắn.
-            - Từ vựng: Học từ vựng đơn giản về gia đình, trường học, đồ vật, động vật.
-            - Tập nói: Trả lời câu hỏi đơn giản, kể chuyện theo tranh.
-            - Nghe hiểu: Hiểu các câu chuyện, bài thơ ngắn, dễ hiểu.
+            Chương trình toán lớp 1 ở Việt Nam bao gồm:
+            - Số học: Đếm, đọc, viết số đến 100; cộng, trừ số trong phạm vi 100 (ví dụ: 5 + 3, 10 - 4).
+            - Đo lường: Đo độ dài (cm); xem đồng hồ (giờ đúng).
+            - Hình học: Nhận biết hình vuông, hình tròn, hình tam giác.
+            - Bài toán có lời văn: Bài toán đơn giản về cộng, trừ (ví dụ: "Lan có 5 quả táo, mẹ cho thêm 2 quả, hỏi Lan có bao nhiêu quả?")
 
-            Cung cấp 1 gợi ý để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 1:
-            - Gợi ý nên giải thích yêu cầu của bài tập bằng từ ngữ đơn giản, vui vẻ.
-            - Chia thành các bước nhỏ, dễ làm, dùng câu hỏi vui để bạn suy nghĩ.
+            Cung cấp 1 gợi ý để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 1:
+            - Gợi ý nên giải thích ý nghĩa bài toán hoặc phép tính bằng ví dụ gần gũi (ví dụ: "Cộng giống như gom kẹo lại với nhau, bạn thấy thế nào?").
+            - Chia bài toán thành bước nhỏ, dễ làm, dùng câu hỏi vui để bạn suy nghĩ.
             - Không dùng từ ngữ phức tạp, chỉ dùng từ trẻ lớp 1 hiểu.
             - Không đưa ra đáp án cuối cùng.
             - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt, ngắn và vui.
@@ -305,19 +304,18 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             """
         elif grade == "2":
             system_prompt = """
-            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 2 (7-8 tuổi) ở Việt Nam học môn Tiếng Việt bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải đơn giản, vui vẻ, và sử dụng ví dụ gần gũi (như đếm kẹo, đồ chơi, bước chân) để bạn dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 2 ở Việt Nam, và tuân theo chương trình toán lớp 2 của Việt Nam.
+            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 2 (7-8 tuổi) ở Việt Nam học môn Toán bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải cực kỳ đơn giản, vui vẻ, và sử dụng ví dụ siêu gần gũi (như đếm kẹo, xếp đồ chơi, nhảy bước) để bạn dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 2 ở Việt Nam, và tuân theo chương trình toán lớp 2 của Việt Nam.
 
-            Chương trình Tiếng Việt lớp 2 ở Việt Nam bao gồm:
-            - Tập đọc: Đọc trôi chảy các từ đơn, câu ngắn; hiểu nghĩa các câu đơn giản.
-            - Tập viết: Viết chữ đúng dáng, đúng kích thước, đúng chính tả.
-            - Từ vựng: Học từ vựng về gia đình, trường học, môi trường xung quanh.
-            - Ngữ pháp: Nhận biết được danh từ, động từ cơ bản.
-            - Kể chuyện: Kể lại câu chuyện đã nghe, đã đọc; trả lời câu hỏi về nội dung bài.
+            Chương trình toán lớp 2 ở Việt Nam bao gồm:
+            - Số học: Đếm, đọc, viết số đến 1000; cộng, trừ số trong phạm vi 1000 (ví dụ: 45 + 27, 83 - 19); nhân, chia số nhỏ (bảng cửu chương 2, 3, 4, 5).
+            - Đo lường: Đo độ dài (cm, m), khối lượng (kg), thời gian (giờ, phút); xem đồng hồ (giờ đúng, giờ rưỡi).
+            - Hình học: Nhận biết hình (vuông, chữ nhật, tam giác); tính chu vi hình tam giác, hình vuông, hình chữ nhật.
+            - Bài toán có lời văn: Bài toán đơn giản về cộng, trừ, nhân, chia (ví dụ: "Lan có 5 quả táo, mẹ cho thêm 3 quả, hỏi Lan có bao nhiêu quả?")
 
-            Cung cấp 1 gợi ý để giúp bạn, đảm bảo gợi ý phù hợp với trình độ lớp 2:
-            - Gợi ý nên giải thích yêu cầu của bài tập bằng từ ngữ đơn giản, vui vẻ.
-            - Chia thành các bước nhỏ, dễ làm, dùng câu hỏi gợi ý để bạn suy nghĩ.
-            - Không dùng từ ngữ phức tạp, chỉ dùng từ trẻ lớp 2 hiểu được.
+            Cung cấp 1 gợi ý để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 2:
+            - Gợi ý nên giải thích ý nghĩa bài toán hoặc phép tính bằng ví dụ gần gũi (ví dụ: "Cộng giống như gom kẹo lại với nhau, bạn thấy thế nào?").
+            - Chia bài toán thành bước nhỏ, dễ làm, dùng câu hỏi vui để bạn suy nghĩ.
+            - Không dùng từ ngữ phức tạp, chỉ dùng từ trẻ lớp 2 hiểu (tránh "phương trình", "tính chất").
             - Không đưa ra đáp án cuối cùng.
             - Gợi ý phải là một câu hoàn chỉnh, bằng tiếng Việt, ngắn và vui.
 
@@ -722,7 +720,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                 # Lưu log chi tiết hơn về response 
                 logging.info(f"API Response (Status {response.status_code})")
                 if "choices" in data and len(data["choices"]) > 0:
-                    response_text = data["choices"][0]["message"]["content"]
+                    response_text = data["choices"][0]["message"]["content"].strip()
                     lines = response_text.strip().split("\n")
                     if len(lines) == 1:
                         if "Tớ thấy các bài toán" in lines[0]:
@@ -809,7 +807,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                 # Lưu log chi tiết hơn về response 
                 logging.info(f"API Response (Status {response.status_code})")
                 if "choices" in data and len(data["choices"]) > 0:
-                    response_text = data["choices"][0]["message"]["content"]
+                    response_text = data["choices"][0]["message"]["content"].strip()
                     lines = response_text.strip().split("\n")
                     if len(lines) == 1:
                         if "Tớ thấy các bài toán" in lines[0]:
@@ -1307,14 +1305,19 @@ def kids():
                 session.modified = True
 
         elif action == "explain_more":
-            cache_key = session.get("cache_key")
-            max_steps = 1
-            hints = HINT_CACHE.get(cache_key, ["Tớ không có gợi ý cho bài toán này."])
-            if session["current_step"] < len(hints) - 1:
-                session["current_step"] += 1
-                hint = hints[session["current_step"]]
+            logging.info(f"Starting explain_more action for question: {session.get('current_question', 'N/A')}")
+            # Gọi API để lấy gợi ý tiếp theo (thay vì dùng từ cache)
+            question = session.get("current_question", "")
+            grade = session.get("grade", "4")
+            subject = session.get("subject", "math")
+            
+            if not question:
+                hint = "Trước tiên bạn cần nhập bài toán để nhận gợi ý nhé!"
             else:
-                hint = "Đó là gợi ý cuối cùng rồi! Bạn thử giải bài toán nhé."
+                # Tạo prompt yêu cầu gợi ý tiếp theo (không giống với gợi ý đầu tiên)
+                new_hint = call_xai_api(problem=f"{question} (Yêu cầu gợi ý tiếp theo, khác với gợi ý trước)", grade=grade)
+                session["current_step"] += 1
+                hint = new_hint[0] if new_hint else "Tớ không có thêm gợi ý cho bài toán này."
             session.modified = True
 
         elif action == "got_it":
@@ -1343,7 +1346,7 @@ def kids():
 
     if session.get("cache_key"):
         hints = HINT_CACHE.get(session["cache_key"], ["Nhập bài toán hoặc tải ảnh để nhận gợi ý!"])
-        hint = hints[session["current_step"]] if session["current_step"] < len(hints) else "Nhập bài toán hoặc tải ảnh để nhận gợi ý!"
+        hint = hints[0] if hints else "Nhập bài toán hoặc tải ảnh để nhận gợi ý!"
 
     response = make_response(render_template("kids.html", hint=hint, tip=tip, loading=loading, 
                                            current_question=session["current_question"], 
