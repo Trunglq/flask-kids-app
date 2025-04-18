@@ -560,18 +560,14 @@
 
     <!-- Ô input box ở dưới cùng -->
     <div class="input-section">
-        <form method="POST" id="main-form" enctype="multipart/form-data">
+        <form id="main-form" onsubmit="event.preventDefault(); currentStep = 1; allHints = []; getNextHint();">
             <div class="input-container">
-                <textarea name="question" id="question-input" placeholder="Nhập câu hỏi (ví dụ: Câu 4)"></textarea>
-                <button type="submit" name="action" value="ask" class="ask-btn">
-                    <span>❓</span> Hỏi
-                </button>
-                <label class="upload-btn">
-                    <span>📎</span> Đính kèm ảnh
-                    <input type="file" name="file" id="file-input" class="file-input" accept="image/png,image/jpeg,image/jpg">
-                </label>
+                <textarea name="question" placeholder="Nhập bài toán hoặc bài tập..."></textarea>
+                <button type="submit" class="ask-btn">Lấy gợi ý đầu tiên</button>
             </div>
         </form>
+        <div id="step-hints-box"></div>
+        <button id="next-hint-btn" class="ask-btn" type="button" onclick="getNextHint()">Gợi ý tiếp</button>
     </div>
 
     <!-- Modal pop-up cho mẹo -->
