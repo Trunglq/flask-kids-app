@@ -198,7 +198,7 @@ def get_parent_tip_from_api(question, retries=3, delay=2):
                 "content": user_prompt
             }
         ],
-        "model": "grok-3-latest",
+        "model": "grok-3-fast-beta",
         "stream": False,
         "temperature": 0.7,
         "max_tokens": 100
@@ -634,10 +634,10 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                         ]
                     }
                 ],
-                "model": "grok-3-latest",
+                "model": "grok-3-fast-beta",
                 "stream": False,
                 "temperature": 0.7,
-                "max_tokens": 500
+                "max_tokens": 100
             }
         else:
             # Continue with regular text processing since Vision API succeeded
@@ -698,7 +698,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                     "content": user_prompt
                 }
             ],
-            "model": "grok-3-latest",
+            "model": "grok-3-fast-beta",
             "stream": False,
             "temperature": 0.7,
             "max_tokens": 500
@@ -785,7 +785,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                     "content": user_prompt
                 }
             ],
-            "model": "grok-3-latest",
+            "model": "grok-3-fast-beta",
             "stream": False,
             "temperature": 0.7,
             "max_tokens": 500
@@ -1013,15 +1013,15 @@ def kids():
             
             # Prepare response
             response = make_response(render_template("kids.html", hint=hint, tip=tip, loading=loading, 
-                                        current_question=session["current_question"], 
-                                        current_step=session["current_step"],
-                                        recent_questions=session["recent_questions"], 
-                                        image_path=session.get("image_path"),
-                                        attached_file=session.get("attached_file"),
-                                        extracted_problems=session.get("extracted_problems"),
-                                        extraction_status=session.get("extraction_status", ""),
-                                        loading_message=loading_message,
-                                        timestamp=int(time())))
+                                               current_question=session["current_question"], 
+                                               current_step=session["current_step"],
+                                               recent_questions=session["recent_questions"], 
+                                               image_path=session.get("image_path"),
+                                               attached_file=session.get("attached_file"),
+                                               extracted_problems=session.get("extracted_problems"),
+                                               extraction_status=session.get("extraction_status", ""),
+                                               loading_message=loading_message,
+                                               timestamp=int(time())))
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
             response.headers["Pragma"] = "no-cache"
             response.headers["Expires"] = "0"
@@ -1188,7 +1188,7 @@ def kids():
             # In new code, we'll use extraction_status and check_extraction instead
 
         elif action == "ask":
-            logging.info(f"Starting ask action with question: {question}")
+            logging.info(f"Starting ask action with question: {session.get('current_question', 'N/A')}")
             if clear_file and session.get("attached_file"):
                 try:
                     os.remove(session["attached_file"])
