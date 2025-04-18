@@ -326,6 +326,36 @@
             font-size: 16px;
             margin: 0;
         }
+        
+        /* Mobile view: hide side columns, pin input to bottom */
+        @media only screen and (max-width: 768px) {
+            .popular-column,
+            .recent-column {
+                display: none !important;
+            }
+            .main-container {
+                flex-direction: column;
+            }
+            .input-section {
+                position: fixed !important;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 100% !important;
+                max-width: none;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+                z-index: 1000;
+            }
+            .chat-column {
+                max-height: calc(100vh - 120px) !important;
+                padding-bottom: 130px;
+            }
+            body {
+                padding-bottom: 130px;
+            }
+        }
     </style>
 </head>
 <body>
