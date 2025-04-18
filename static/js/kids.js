@@ -20,6 +20,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (fileInput) {
         fileInput.addEventListener('change', function() {
             if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const maxSize = 16 * 1024 * 1024; // 16MB
+                if (file.size > maxSize) {
+                    showError("Kích thước file quá lớn. Vui lòng chọn ảnh nhỏ hơn 16MB.");
+                    fileInput.value = "";
+                    return;
+                }
                 console.log("File selected, submitting form...");
                 resetProcessingState();
                 submitFileForm();
@@ -66,7 +73,15 @@ function submitFileForm() {
         body: formData,
         cache: 'no-store'
     })
-    .then(response => response.text())
+    .then(response => {
+        if (!response.ok) {
+            if (response.status === 413) {
+                throw new Error("Kích thước file quá lớn. Vui lòng chọn ảnh nhỏ hơn 16MB.");
+            }
+            throw new Error("Server responded with status: " + response.status);
+        }
+        return response.text();
+    })
     .then(html => {
         console.log("File upload complete");
         

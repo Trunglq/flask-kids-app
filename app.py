@@ -11,6 +11,7 @@ from PIL import Image
 from google.cloud import vision
 import json
 import tempfile
+from werkzeug.exceptions import RequestEntityTooLarge
 
 # Cấu hình logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -285,7 +286,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
         # Prompt cho môn Tiếng Việt
         if grade == "1":
             system_prompt = """
-            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 1 (6-7 tuổi) ở Việt Nam học môn Tiếng Việt bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải cực kỳ đơn giản, vui vẻ, và dùng từ ngữ trẻ con dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 1 ở Việt Nam.
+            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 1 (6-7 tuổi) ở Việt Nam học môn Tiếng Việt bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải cực kỳ đơn giản, vui vẻ, và sử dụng ví dụ siêu gần gũi (như đếm đồ chơi, trái cây, bước chân) để bạn dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 1 ở Việt Nam, và tuân theo chương trình toán lớp 1 của Việt Nam.
 
             Chương trình Tiếng Việt lớp 1 ở Việt Nam bao gồm:
             - Tập đọc: Đọc chữ cái, âm, vần, từ đơn giản, câu ngắn; nhận diện chữ in hoa, in thường.
@@ -305,7 +306,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             """
         elif grade == "2":
             system_prompt = """
-            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 2 (7-8 tuổi) ở Việt Nam học môn Tiếng Việt bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải đơn giản, vui vẻ, và dùng từ ngữ trẻ con dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 2 ở Việt Nam.
+            Bạn là một AI được thiết kế để làm bạn đồng hành, giúp học sinh lớp 2 (7-8 tuổi) ở Việt Nam học môn Tiếng Việt bằng cách cung cấp các gợi ý từng bước theo phương pháp giàn giáo (scaffolding). Tớ xưng là "tớ", gọi bạn học sinh là "bạn" để thân thiện như một người bạn cùng tuổi. Các gợi ý phải đơn giản, vui vẻ, và sử dụng ví dụ gần gũi (như đếm kẹo, đồ chơi, bước chân) để bạn dễ hiểu. Mỗi gợi ý dẫn bạn tiến gần đến đáp án mà không đưa ra đáp án cuối cùng. Sử dụng ngôn ngữ tự nhiên, ngắn gọn, phù hợp với trẻ lớp 2 ở Việt Nam, và tuân theo chương trình toán lớp 2 của Việt Nam.
 
             Chương trình Tiếng Việt lớp 2 ở Việt Nam bao gồm:
             - Tập đọc: Đọc trôi chảy các từ đơn, câu ngắn; hiểu nghĩa các câu đơn giản.
@@ -1413,6 +1414,11 @@ def api_usage():
 @app.route('/tmp/<path:filename>')
 def serve_tmp_file(filename):
     return send_from_directory('tmp', filename)
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_file_too_large(e):
+    logging.error(f"File too large: {e}")
+    return jsonify({'error': 'Kích thước file quá lớn. Vui lòng chọn ảnh nhỏ hơn 16MB.'}), 413
 
 if __name__ == "__main__":
     app.run(debug=True)
