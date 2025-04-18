@@ -369,7 +369,45 @@
                               </span>
                             </p>
                             {% else %}
-                            <p class="hint-text">{% if current_step > 0 %}Gợi ý {{ current_step + 1 }}: {% endif %}{{ hint }}</p>
+                            <div id="parent-hints-container">
+                              <p class="hint-text" id="parent-hint-text">{% if current_step > 0 %}Gợi ý {{ current_step + 1 }}: {% endif %}{{ hint }}</p>
+                            </div>
+                            <button id="show-more-hint-btn" class="full-width-btn" style="margin-top:10px;display:none;">🔄 Xem mẹo khác cho cha mẹ</button>
+                            <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                              const showMoreBtn = document.getElementById('show-more-hint-btn');
+                              const hintText = document.getElementById('parent-hint-text');
+                              const parentHintsContainer = document.getElementById('parent-hints-container');
+                              let currentQuestion = {{ current_question|tojson }};
+                              if (showMoreBtn && hintText && currentQuestion && currentQuestion.length > 0) {
+                                showMoreBtn.style.display = 'block';
+                                showMoreBtn.onclick = function() {
+                                  showMoreBtn.disabled = true;
+                                  showMoreBtn.textContent = 'Đang lấy mẹo mới...';
+                                  fetch('/kids/hint', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                    body: 'question=' + encodeURIComponent(currentQuestion)
+                                  })
+                                  .then(r => r.json())
+                                  .then(data => {
+                                    if (data.hint) {
+                                      const newHint = document.createElement('p');
+                                      newHint.className = 'hint-text';
+                                      newHint.textContent = 'Mẹo khác: ' + data.hint;
+                                      parentHintsContainer.appendChild(newHint);
+                                    }
+                                    showMoreBtn.disabled = false;
+                                    showMoreBtn.textContent = '🔄 Xem mẹo khác cho cha mẹ';
+                                  })
+                                  .catch(() => {
+                                    showMoreBtn.disabled = false;
+                                    showMoreBtn.textContent = '🔄 Xem mẹo khác cho cha mẹ';
+                                  });
+                                };
+                              }
+                            });
+                            </script>
                             {% endif %}
                         {% endif %}
                     {% endif %}
@@ -560,14 +598,18 @@
 
     <!-- Ô input box ở dưới cùng -->
     <div class="input-section">
-        <form id="main-form" onsubmit="event.preventDefault(); currentStep = 1; allHints = []; getNextHint();">
+        <form method="POST" id="main-form" enctype="multipart/form-data">
             <div class="input-container">
-                <textarea name="question" placeholder="Nhập bài toán hoặc bài tập..."></textarea>
-                <button type="submit" class="ask-btn">Lấy gợi ý đầu tiên</button>
+                <textarea name="question" id="question-input" placeholder="Nhập câu hỏi (ví dụ: Câu 4)"></textarea>
+                <button type="submit" name="action" value="ask" class="ask-btn">
+                    <span>❓</span> Hỏi
+                </button>
+                <label class="upload-btn">
+                    <span>📎</span> Đính kèm ảnh
+                    <input type="file" name="file" id="file-input" class="file-input" accept="image/png,image/jpeg,image/jpg">
+                </label>
             </div>
         </form>
-        <div id="step-hints-box"></div>
-        <button id="next-hint-btn" class="ask-btn" type="button" onclick="getNextHint()">Gợi ý tiếp</button>
     </div>
 
     <!-- Modal pop-up cho mẹo -->

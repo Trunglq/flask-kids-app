@@ -150,10 +150,6 @@ def extract_specific_problem(extracted_text, problem):
 def get_parent_tip_from_api(question, retries=3, delay=2):
     check_rate_limit()
     
-    if "tip_cache" in session and question in session["tip_cache"]:
-        logging.info(f"Using cached tip for: {question}")
-        return session["tip_cache"][question]
-    
     url = "https://api.x.ai/v1/chat/completions"
     headers = {
         "Authorization": "Bearer xai-DCwUdnvyPe1EofmGW29GbglqUn2WU0WyiaWtmiaA2STEZoswhMwZrgtvhZoSbXzvdL3nnZ9iMyKIYXad",
@@ -205,48 +201,42 @@ def get_parent_tip_from_api(question, retries=3, delay=2):
     }
     for attempt in range(retries):
         try:
-            # Backoff delay tăng dần theo số lần thử 
             if attempt > 0:
-                backoff_time = delay * (2 ** (attempt - 1))  # 2, 4, 8... giây
-                logging.info(f"Retry {attempt}/{retries} - Waiting {backoff_time}s before retry...")
+                backoff_time = delay * (2 ** (attempt - 1))
                 sleep(backoff_time)
-
-            logging.info(f"Calling xAI API for parent tip (attempt {attempt + 1}/{retries})...")
             response = requests.post(url, headers=headers, json=payload, timeout=30)
             response.raise_for_status()
             data = response.json()
-            logging.info(f"API Response for tip (Status {response.status_code})")
             if "choices" in data and len(data["choices"]) > 0:
                 tip = data["choices"][0]["message"]["content"].strip()
-                if "tip_cache" not in session:
-                    session["tip_cache"] = {}
-                session["tip_cache"][question] = tip
-                if len(session["tip_cache"]) > 50:
-                    session["tip_cache"].pop(next(iter(session["tip_cache"])))
-                usage = data.get("usage", {})
-                total_tokens = usage.get("total_tokens", 0)
-                if "token_usage" not in session:
-                    session["token_usage"] = []
-                session["token_usage"].append({
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "problem": f"Parent tip for: {question}",
-                    "total_tokens": total_tokens
-                })
-                session["token_usage"] = session["token_usage"][-50:]
-                session.modified = True
                 return tip
-            else:
-                logging.warning(f"Unexpected API response format for tip: {data}")
-                if attempt == retries - 1:
-                    return "Hãy khuyến khích con chia bài toán thành các bước nhỏ và hỏi: 'Con nghĩ bước đầu tiên mình cần làm gì?'"
         except requests.exceptions.Timeout:
-            logging.error(f"Attempt {attempt + 1}/{retries} - Timeout error calling xAI API for tip")
-            if attempt == retries - 1:
-                return "Hãy khuyến khích con chia bài toán thành các bước nhỏ và hỏi: 'Con nghĩ bước đầu tiên mình cần làm gì?'"
-        except requests.exceptions.RequestException as e:
-            logging.error(f"Attempt {attempt + 1}/{retries} - Error calling xAI API for tip: {str(e)}")
-            if attempt == retries - 1:
-                return "Hãy khuyến khích con chia bài toán thành các bước nhỏ và hỏi: 'Con nghĩ bước đầu tiên mình cần làm gì?'"
+            continue
+    return "Hãy khuyến khích con chia bài toán thành các bước nhỏ và hỏi: 'Con nghĩ bước đầu tiên mình cần làm gì?'"
+
+@app.route('/kids/hint', methods=['POST'])
+def get_next_parent_hint():
+    question = request.form.get('question', '').strip()
+    if not question:
+        return jsonify({'error': 'No question provided.'}), 400
+    # Initialize session storage for hints if not present
+    if 'parent_hints' not in session or session.get('parent_hint_question') != question:
+        session['parent_hints'] = []
+        session['parent_hint_index'] = 0
+        session['parent_hint_question'] = question
+    hints = session['parent_hints']
+    index = session['parent_hint_index']
+    # If we already have a hint at this index, return it
+    if index < len(hints):
+        hint = hints[index]
+    else:
+        # Otherwise, fetch a new hint from the API
+        hint = get_parent_tip_from_api(question)
+        hints.append(hint)
+        session['parent_hints'] = hints
+    session['parent_hint_index'] = index + 1
+    session.modified = True
+    return jsonify({'hint': hint, 'index': session['parent_hint_index']})
 
 def is_geometry_problem(question):
     geometry_keywords = ["tam giác", "hình lăng trụ", "đường thẳng", "góc", "hình hộp", "hình lập phương", "hình vuông", "hình chữ nhật"]
@@ -454,7 +444,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
             Chương trình toán lớp 2 ở Việt Nam bao gồm:
             - Số học: Đếm, đọc, viết số đến 1000; cộng, trừ số trong phạm vi 1000 (ví dụ: 45 + 27, 83 - 19); nhân, chia số nhỏ (bảng cửu chương 2, 3, 4, 5).
             - Đo lường: Đo độ dài (cm, m), khối lượng (kg), thời gian (giờ, phút); xem đồng hồ (giờ đúng, giờ rưỡi).
-            - Hình học: Nhận biết hình (vuông, chữ nhật, tam giác); tính chu vi hình tam giác, hình vuông, hình chữ nhật.
+            - Hình học: Nhận biết hình vuông, hình chữ nhật, hình tam giác, hình tròn.
             - Bài toán có lời văn: Bài toán đơn giản về cộng, trừ, nhân, chia (ví dụ: "Lan có 5 quả táo, mẹ cho thêm 3 quả, hỏi Lan có bao nhiêu quả?")
 
             Cung cấp 3 gợi ý từng bước để giải bài toán, đảm bảo gợi ý phù hợp với trình độ lớp 2:
@@ -797,7 +787,7 @@ def call_xai_api(problem=None, grade=None, file_path=None, retries=3, delay=2):
                     backoff_time = delay * (2 ** (attempt - 1))  # 2, 4, 8... giây
                     logging.info(f"Retry {attempt}/{retries} - Waiting {backoff_time}s before retry...")
                     sleep(backoff_time)
-
+                    
                 logging.info(f"Calling xAI API (attempt {attempt + 1}/{retries})...")
                 
                 # Tăng timeout từ 20s lên 30s
@@ -1188,7 +1178,7 @@ def kids():
             # In new code, we'll use extraction_status and check_extraction instead
 
         elif action == "ask":
-            logging.info(f"Starting ask action with question: {session.get('current_question', 'N/A')}")
+            logging.info(f"Starting ask action with question: {question}")
             if clear_file and session.get("attached_file"):
                 try:
                     os.remove(session["attached_file"])
@@ -1305,15 +1295,6 @@ def kids():
                 session["attached_file"] = None
                 session["extracted_problems"] = None
                 session.modified = True
-                return render_template("kids.html", hint=hint, tip=tip, loading=loading, 
-                                     current_question=session["current_question"], 
-                                     current_step=session["current_step"],
-                                     recent_questions=session["recent_questions"], 
-                                     image_path=session.get("image_path"),
-                                     attached_file=session.get("attached_file"),
-                                     extracted_problems=session.get("extracted_problems"),
-                                     loading_message=loading_message,
-                                     timestamp=int(time()))
 
         elif action == "explain_more":
             cache_key = session.get("cache_key")
@@ -1406,56 +1387,29 @@ def api_usage():
 def serve_tmp_file(filename):
     return send_from_directory('tmp', filename)
 
-@app.route('/get_hint_step', methods=['POST'])
-def get_hint_step():
-    # Lấy dữ liệu từ request
+@app.route('/kids/hint', methods=['POST'])
+def get_next_parent_hint():
     question = request.form.get('question', '').strip()
-    step = int(request.form.get('step', '1'))
-    grade = session.get("grade", "4")
-    subject = session.get("subject", "math")
-
-    # Xây dựng prompt động cho từng bước
-    if subject == 'math':
-        system_prompt = f"""
-        Bạn là một AI đồng hành giúp học sinh lớp {grade} ở Việt Nam học toán. Hãy đưa ra gợi ý từng bước để giúp học sinh tự giải quyết bài toán. Chỉ trả về đúng 1 gợi ý cho bước {step}, phù hợp với trình độ lớp {grade}. Không đưa ra đáp án cuối cùng.
-        """
+    if not question:
+        return jsonify({'error': 'No question provided.'}), 400
+    # Initialize session storage for hints if not present
+    if 'parent_hints' not in session or session.get('parent_hint_question') != question:
+        session['parent_hints'] = []
+        session['parent_hint_index'] = 0
+        session['parent_hint_question'] = question
+    hints = session['parent_hints']
+    index = session['parent_hint_index']
+    # If we already have a hint at this index, return it
+    if index < len(hints):
+        hint = hints[index]
     else:
-        system_prompt = f"""
-        Bạn là một AI đồng hành giúp học sinh lớp {grade} ở Việt Nam học Tiếng Việt/Văn. Hãy đưa ra gợi ý từng bước để giúp học sinh tự giải quyết bài tập. Chỉ trả về đúng 1 gợi ý cho bước {step}, phù hợp với trình độ lớp {grade}. Không đưa ra đáp án cuối cùng.
-        """
-
-    user_prompt = f"""
-    Bài toán/bài tập: {question}\nHãy cho tớ gợi ý bước số {step} để giải bài này.
-    """
-
-    payload = {
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        "model": "grok-3-fast-beta",
-        "stream": False,
-        "temperature": 0.7,
-        "max_tokens": 60
-    }
-
-    url = "https://api.x.ai/v1/chat/completions"
-    headers = {
-        "Authorization": "Bearer xai-DCwUdnvyPe1EofmGW29GbglqUn2WU0WyiaWtmiaA2STEZoswhMwZrgtvhZoSbXzvdL3nnZ9iMyKIYXad",
-        "Content-Type": "application/json"
-    }
-
-    try:
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
-        response.raise_for_status()
-        data = response.json()
-        if "choices" in data and len(data["choices"]) > 0:
-            hint = data["choices"][0]["message"]["content"].strip()
-            return jsonify({"hint": hint})
-        else:
-            return jsonify({"hint": "Không lấy được gợi ý, bạn thử lại nhé!"}), 400
-    except Exception as e:
-        return jsonify({"hint": f"Lỗi: {str(e)}"}), 500
+        # Otherwise, fetch a new hint from the API
+        hint = get_parent_tip_from_api(question)
+        hints.append(hint)
+        session['parent_hints'] = hints
+    session['parent_hint_index'] = index + 1
+    session.modified = True
+    return jsonify({'hint': hint, 'index': session['parent_hint_index']})
 
 if __name__ == "__main__":
     app.run(debug=True)
